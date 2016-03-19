@@ -2,6 +2,7 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
+library(ggplot2)
 
 ui <- dashboardPage(
   dashboardHeader
