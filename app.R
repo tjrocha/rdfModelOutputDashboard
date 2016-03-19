@@ -42,10 +42,12 @@ ui <- dashboardPage(
     ),
     selectInput
     (
-      "input_type", 
-      "Select Output", 
-      c("---","[JR] this will be dynamically populated based on the model selected")
+      "rdfChooser", 
+      "Select Output Slot", 
+      c(Choose='', state.name)#[JR] this will be dynamically populated based on the model selected"
+      
     ),
+    #selectInput('in4', 'Options', c(Choose='', state.name), selectize=TRUE)
     sidebarMenu
     (
       menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
@@ -96,6 +98,9 @@ server <- function(input, output)
   set.seed(122)
   histdata <- rnorm(500)
   
+  # POPULATE THE SLOT LIST FROM THE RDF HERE
+  output$rdfSlots <- renderPrint(input$rdfChooser)
+  
   # GENERATE THE PLOT HERE
   output$plot1 <- renderPlot({
     data <- histdata[seq_len(input$slider)]
@@ -107,6 +112,7 @@ server <- function(input, output)
     data <- mpg
     data
   }))
+  
 }
 
 shinyApp(ui, server)
