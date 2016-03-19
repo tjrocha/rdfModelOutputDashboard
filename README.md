@@ -1,4 +1,4 @@
-# rdfModelOutputDashboard
+# RDF Model Output Explorer
 This generates a dashboard to view, analyze, and query data from RiverWare *.rdf model 
 outputs. This is primarily meant to support U.S. Bureau of Reclamation modeling and 
 analysis efforts with the 24-Month Study, Mid-Term Operations Model and Colorado River 
