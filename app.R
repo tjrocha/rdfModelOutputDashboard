@@ -2,6 +2,7 @@
 library(shiny)
 library(shinydashboard)
 library(dygraphs)
+library(DT)
 library(ggplot2)
 
 ui <- dashboardPage(
@@ -31,7 +32,13 @@ ui <- dashboardPage(
     (
       "input_type", 
       "Select Model", 
-      c("24-Month Study", "Mid-Term Operations Model (MTOM)", "Colorado River Simulation System (CRSS)")
+      c("---", "24-Month Study", "Mid-Term Operations Model (MTOM)", "Colorado River Simulation System (CRSS)")
+    ),
+    fileInput
+    (
+      'rdfFileIn', 
+      'or choose *.rdf file to upload',
+      accept = c('.rdf')
     ),
     selectInput
     (
