@@ -5,7 +5,7 @@ library(dygraphs)
 library(DT)
 library(ggplot2)
 
-ui <- dashboardPage(
+userInterface <- dashboardPage(
   dashboardHeader
   (
     title="Model Output Explorer", 
@@ -44,13 +44,13 @@ ui <- dashboardPage(
     (
       "rdfChooser", 
       "Select Output Slot", 
-      c(Choose='', state.name)#[JR] this will be dynamically populated based on the model selected"
-      
+      c(Choose='', state.name),#[JR] this will be dynamically populated based on the model selected"
+      selectize = TRUE
     ),
     #selectInput('in4', 'Options', c(Choose='', state.name), selectize=TRUE)
     sidebarMenu
     (
-      menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+      menuItem("Home", tabName = "dashboard", icon = icon("home")),
       menuItem("Charts", tabName = "charts", icon = icon("area-chart")),
       menuItem("Data", tabName = "data", icon = icon("table"))
     )
@@ -72,7 +72,12 @@ ui <- dashboardPage(
       tabItem
       (
         tabName = "charts",
-        box
+        "[JR] THIS WILL BE DYNAMICALLY UPDATED WITH CHARTS BASED ON OUTPUT SELECTIONS",
+        "MAYBE HAVE SOME ADDITIONAL OPTIONS TO ISOLATE TRACES BY YEAR, TRACE#, SOME THRESHOLD, ETC.",
+        "1. TRACE/SCENARIO ENVELOPES",
+        "2. SPAGHETTI PLOT OF ALL TRACES WITH OPTION TO STEP THROUGH EACH TRACE",
+        "3. PDF & CDF PLOTS", 
+        box #[JR] THIS CONTROL GENERATES AN INPUT FOR THE server SECTION BELOW WHICH IN TURN GENERATES THE PLOT THAT IMMEDIATELY FOLLOWS
         (
           title="controls", 
           sliderInput("slider", "Number of observations:", 1, 100, 50)
@@ -92,7 +97,7 @@ ui <- dashboardPage(
   )
 )
 
-server <- function(input, output) 
+serverProcessing <- function(input, output) 
 {
   # DEFINE DYNAMIC VARIABLES HERE
   set.seed(122)
@@ -115,4 +120,4 @@ server <- function(input, output)
   
 }
 
-shinyApp(ui, server)
+shinyApp(userInterface, serverProcessing)
