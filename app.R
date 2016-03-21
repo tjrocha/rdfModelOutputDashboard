@@ -7,6 +7,7 @@ library(DT)
 library(xts)
 library(zoo)
 library(quantmod)#for testing xts timeseries
+library(RWDataPlot)
 
 ############################################################################################
 # USER INTERFACE SECTION
@@ -237,6 +238,31 @@ serverProcessing <- function(input, output)
   ) %>%
   formatStyle('Date',  fontWeight = 'bold')
   )
+  
+  # FUNCTION TO PERFORM STATS, AGGREGATION AND ANALYSIS
+  output$statsTable <- reactive({
+    # DEFINE PERCENTILE VALUES OF INTEREST
+    toPctls <- function(rdfRawData) quantile(rdfRawData, c(.10,.25,.50,.75,.90))
+    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY EOCY
+    eocyPctlXts <- apply.yearly(rdfRawData()[endpoints(rdfRawData(), on="years", k=1)],toPctls)
+    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY MONTH
+    montPctlXts <- apply.monthly(rdfRawData(),toPctls)
+    # GET CY ANNUAL SUMS BY TRACE 
+    annlSumsXts <- apply.yearly(rdfRawData(),mean)*12
+    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY CY ANNUAL SUMS 
+    annlSumsPctlXts <- apply.yearly(annlSumsXts,toPctls)
+    # SORT EACH COLUMN DESCENDING FOR MONTHLY VALUE CDF PLOTS
+    sortedDataXts <- apply(rdfRawData(),2,sort,decreasing=TRUE)
+    # GET PERCENTILE VALUES OF SORTED DATA AT EACH ROW
+    sortedDataPctlsXts <- apply(sortedDataXts, 1, toPctls)
+    # FLIP ARRAY FOR PLOTTING
+    sortedDataPctlsXts <- t(sortedDataPctlsXts[nrow(sortedDataPctlsXts):1,])
+    sortedDataPctlsXts <- data.frame(cbind(round((1000*array((1:nrow(sortedDataPctlsXts))/nrow(sortedDataPctlsXts)))+1000,0),sortedDataPctlsXts))
+    sortedDataPctlsXts <- as.xts(sortedDataPctlsXts[-1], order.by = as.Date(paste0(sortedDataPctlsXts$V1,"-01-01",format="%Y-01-01")))
+    # PACK XTS ARRAYS INTO A LIST AND OUTPUT
+    outList <- list(eocyPctlXts,montPctlXts,annlSumsXts,annlSumsPctlXts,sortedDataPctlsXts)
+  })
+  
 }
 
 ############################################################################################
