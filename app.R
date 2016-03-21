@@ -151,7 +151,11 @@ userInterface <- dashboardPage(
         br(),br(),
         fluidRow
         (
-          DT::dataTableOutput("tableRdfData") #[JR] tableRdfData IS MAPPED TO A TABLE IN THE server SECTION BELOW
+          div
+          (
+            style = 'overflow-x: scroll',
+            DT::dataTableOutput("tableRdfData") #[JR] tableRdfData IS MAPPED TO A TABLE IN THE server SECTION BELOW
+          )
         )
       )
     )
@@ -178,40 +182,61 @@ serverProcessing <- function(input, output)
   
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
   rdfRawData <- reactive({
-    getSymbols(c("GOG"), from = "2010-01-01")
-    #GOG[,'GOG.Open']
-    GOG
+    getSymbols(c("GOOG"), from = "2016-01-01")
+    GOOG$GOOG.Volume <- NULL
+    GOOG$GOOG.Adjusted <- NULL
+    GOOG$trace1 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
+    GOOG$trace2 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
+    GOOG$trace3 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
+    GOOG$trace4 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
+    GOOG$trace5 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
+    GOOG$trace6 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
+    GOOG
   })
   
   # GENERATE THE PLOTS HERE
   output$plotRdfTS <- renderDygraph({
     dygraph(rdfRawData(), main = "Time-Series Plot") %>%
     dySeries(attr(rdfRawData,"dimnames")[1]) %>%
+    dyLegend(show = "never") %>%
     dyOptions(drawGrid = TRUE)
   })
   
   output$plotRdfEnv <- renderDygraph({
     dygraph(rdfRawData(), main = "Envelope Plot") %>%
       dySeries(attr(rdfRawData,"dimnames")[1]) %>%
+      dyLegend(show = "never") %>%
       dyOptions(drawGrid = TRUE)
   })
   
   output$plotRdfPDF <- renderDygraph({
     dygraph(rdfRawData(), main = "Probability Density Plot") %>%
       dySeries(attr(rdfRawData,"dimnames")[1]) %>%
+      dyLegend(show = "never") %>%
       dyOptions(drawGrid = TRUE)
   })
   
   output$plotRdfCDF <- renderDygraph({
     dygraph(rdfRawData(), main = "Cumulative Distribution Plot") %>%
       dySeries(attr(rdfRawData,"dimnames")[1]) %>%
+      dyLegend(show = "never") %>%
       dyOptions(drawGrid = TRUE)
   })
   
   # GET DATA FROM RDF HERE, see shiny sample #030 for dynamic filtering of the table based on input variables
-  output$tableRdfData <- DT::renderDataTable(DT::datatable(rownames = FALSE, {
-    data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))
-  }))
+  output$tableRdfData <- DT::renderDataTable(DT::datatable
+  (
+    {data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))},
+    rownames = FALSE, 
+    filter='top', 
+    options = list
+    (
+      pageLength = 10, 
+      lengthMenu = c(12, 24, 36, 365)
+    )
+  ) %>%
+  formatStyle('Date',  fontWeight = 'bold')
+  )
 }
 
 ############################################################################################
