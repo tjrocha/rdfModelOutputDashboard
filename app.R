@@ -229,7 +229,7 @@ serverProcessing <- function(input, output)
   })
   # GET THE NUMBER OF RUNS
   output$selectedTrace <- renderUI({
-    sliderInput("selectedTrace", "Select a trace to highlight: ", min=1, max=as.numeric(rdf$meta$number_of_runs), 
+    sliderInput("selectedTrace", "Select a trace to highlight: ", min=1, max=as.numeric(rdfFile()$meta$number_of_runs), 
                 value=1, animate = TRUE)
   })
   sliderTraceSelected <- reactive({
