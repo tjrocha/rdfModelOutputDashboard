@@ -6,7 +6,6 @@ library(dygraphs)
 library(DT)
 library(xts)
 library(zoo)
-library(quantmod)#for testing xts timeseries
 library(RWDataPlot)
 
 ############################################################################################
@@ -37,9 +36,9 @@ userInterface <- dashboardPage(
     # DEFINE SIDEBAR ITEMS
     selectInput
     (
-      "input_type", 
-      "Select Model", 
-      c("---", "24-Month Study", "Mid-Term Operations Model (MTOM)", "Colorado River Simulation System (CRSS)")
+      "selectedModel", 
+      "1. Select a Model", 
+      c("---", "24MS (24-Month Study)", "MTOM (Mid-Term Operations Model)", "CRSS (Colorado River Simulation System)")
     ),
     fileInput
     (
@@ -47,13 +46,7 @@ userInterface <- dashboardPage(
       'or choose *.rdf file to upload',
       accept = c('.rdf')
     ),
-    selectInput
-    (
-      "rdfChooser", 
-      "Select Output Slot", 
-      c(Choose='', state.name),#[JR] this will be dynamically populated based on the model selected"
-      selectize = TRUE
-    ),
+    htmlOutput("selectSlotName"),
     sidebarMenu
     (
       menuItem("Home", tabName = "home", icon = icon("home")),
@@ -73,18 +66,50 @@ userInterface <- dashboardPage(
         tabName = "home",
         fluidRow
         (
+          h1("RiverWare RDF Model Output Explorer"),
+          h2("Instructions"),
+          "1. Select a model fromt he top-most drop down box (ONLY MTOM AND CRSS ARE UPLOADED FOR NOW...).",
+          br(),
+          "2. Once a model has been selected another drop down box will be populated with the slot names ",
+          "present in the selected model RDF file. This may take a few seconds to generate.",
+          br(),  
+          "3. Once a model and a slot has been selected, you may now view charts and data in their respective ",
+          "sections via the sidebar. You may change your selections at any time. ",
+          br(),br(),
+          h2("Information"),
+          "This interface allows users to query, subset, view, and plot RiverWare RDF model outputs. ",
+          "This tool is primarily meant to support U.S. Bureau of Reclamation modeling and analysis ",
+          "efforts with the 24-Month Study, Mid-Term Operations Model and Colorado River Simulation ",
+          "System models. Although the stated purpose is to support USBR, the tool is being developed ",
+          "to be as generic as possible so as to enable other users to use is so long as a RiverWare ",
+          "*.rdf file is provided.",
+          br(),br(),
+          "The dashboard uses the following R libraries below and is being developed in RStudio. ",
+          br(),
+          "shiny <http://shiny.rstudio.com/>",
+          br(),
+          "shinydashboard <https://rstudio.github.io/shinydashboard/>",
+          br(),
+          "DT <https://rstudio.github.io/DT/>",
+          br(),
+          "xts <https://cran.r-project.org/web/packages/xts/index.html>",
+          br(),
+          "zoo <https://cran.r-project.org/web/packages/zoo/index.html>",
+          br(),
+          "RWDataPlot <https://github.com/rabutler/RWDataPlot>",
+          br(),br(),
+          "The source code is also available on GitHub <https://github.com/tjrocha/rdfModelOutputDashboard>"
         )
       ),
       tabItem
       (
         tabName = "charts",
         h2("Charts and Graphs"),
-        "[JR] THIS WILL BE DYNAMICALLY UPDATED WITH CHARTS BASED ON OUTPUT SELECTIONS",
-        "MAYBE HAVE SOME ADDITIONAL OPTIONS TO ISOLATE TRACES BY YEAR, TRACE#, SOME THRESHOLD, ETC.",
-        br(),br(),
         "Notes: ",
         br(),
         "This page shows some common charts and graphs to view and summarize the selected slot data. ",
+        br(),
+        "[JR]: WORK IN PROGRESS",
         br(),br(),
         #fluidRow
         #(
@@ -131,8 +156,6 @@ userInterface <- dashboardPage(
       (
         tabName = "data",
         h2("Data Table"),
-        "[JR] THIS WILL BE DYNAMICALLY UPDATED WITH DATA GIVEN MODEL AND OUTPUT SELECTIONS",
-        br(),br(),
         "Notes:",
         br(),
         "1. Data shown below is based on the selected slot on the sidebar menu. ",
@@ -147,8 +170,11 @@ userInterface <- dashboardPage(
         "Search Function Examples: Typing '2010' or '2010-01' will filter the data to just ",
         "those for 2010 or January-2010 respectively. ",
         "Typing '1075' will filter data values outside of 1075.00 to 1075.99. ",
+        br(),
+        "5. Clicking on the empty boxes below each header shows the range of the data in that particular column ",
+        "via a slider bar which you may also use to filter the table rows.",
         br(),br(),
-        downloadButton('downloadData', 'Download Data as a CSV file'),
+        downloadButton('downloadDataTable', 'Download Data as a CSV file'),
         br(),br(),
         fluidRow
         (
@@ -171,28 +197,51 @@ serverProcessing <- function(input, output)
   # DEFINE DYNAMIC VARIABLES HERE
   
   # DEFINE PROCESSING FUNCTIONS AND METHODS HERE
-  output$downloadData <- downloadHandler(
+  output$downloadDataTable <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
     content = function(filename) 
     {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
   )
   
-  # POPULATE THE SLOT LIST FROM THE RDF HERE
-  output$rdfSlots <- renderPrint(input$rdfChooser)
+  # GET THE SELECTED MODEL FROM THE UI
+  selectedModelName <- reactive({
+    modelNameString <-input$selectedModel
+    modelName <- strsplit(modelNameString," ")[[1]][1]
+    modelName
+  })
   
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
+  rdfFile <- reactive({
+    rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
+    rawRDF <- read.rdf(rdfFileName)
+    rawRDF
+  })
+  
   rdfRawData <- reactive({
-    getSymbols(c("GOOG"), from = "2016-01-01")
-    GOOG$GOOG.Volume <- NULL
-    GOOG$GOOG.Adjusted <- NULL
-    GOOG$trace1 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
-    GOOG$trace2 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
-    GOOG$trace3 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
-    GOOG$trace4 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
-    GOOG$trace5 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
-    GOOG$trace6 <- GOOG$GOOG.Open * rnorm(1,mean=1,sd=0.25)
-    GOOG
+    rawRDF <- rdfFile()
+    tArray <- rawRDF$runs[[1]]$times
+    # OPERATIONS IN ORDER OF EXECUTION
+    # 1. rdfSlotToMatrix - read data for 'ithSlotName' string given 'rdf' file
+    # 2. cbind - combine datetime and data series arrays
+    # 3. data.frame - define R dataframe for conversion to XTS
+    # 4. read.zoo - convert dataframe to zoo matrix
+    # 5. as.xts - convert zoo matrix to XTS
+    # 6. Storage.mode() - convert char values in the XTS matrix to numeric
+    rdf <- as.xts(read.zoo(data.frame(cbind(tArray,rdfSlotToMatrix(rawRDF, selectedRDFSlot())))))
+    storage.mode(rdf) <- "numeric"
+    rdf
+  })
+  
+  # GENERATE THE SLOT SELECTION DROP DOWN LIST
+  output$selectSlotName <- renderUI({ 
+    selectInput("slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))#state.name))#, Selectize = TRUE) 
+  })
+  
+  # GET THE SELECTED SLOT FROM THE UI
+  selectedRDFSlot <- reactive({
+    slotName <- input$slotName
+    slotName
   })
   
   # GENERATE THE PLOTS HERE
