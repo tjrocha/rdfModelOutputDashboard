@@ -1,4 +1,22 @@
 ## app.R ##
+
+############################################################################################
+# This application was built in RStudio by Jon Rocha at jrocha@usbr.gov
+#
+# The application allows users to query, subset, view, and plot RiverWare RDF model outputs. 
+# This is primarily meant to support U.S. Bureau of Reclamation (USBR) modeling and analysis 
+# efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation 
+# System models. Although the stated purpose is to support USBR, the tool is being developed 
+# to be as generic as possible so as to enable other users to use it so long as a RiverWare 
+# *.rdf file is provided. 
+#
+# Application is distributed with an MIT license, March 2016
+############################################################################################
+
+
+############################################################################################
+# LOAD REQUIRED PACKAGES
+############################################################################################
 rm(list=ls())
 library(shiny)
 library(shinydashboard)
@@ -7,7 +25,6 @@ library(DT)
 library(xts)
 library(zoo)
 library(RWDataPlot)
-
 ############################################################################################
 # USER INTERFACE SECTION
 ############################################################################################
@@ -185,7 +202,6 @@ userInterface <- dashboardPage(
     )
   )
 )
-
 ############################################################################################
 # SERVER SIDE FUNCTIONS, METHODS, AND PROCESSING
 ############################################################################################
@@ -206,7 +222,6 @@ serverProcessing <- function(input, output)
     rawRDF <- read.rdf(rdfFileName)
     rawRDF
   })
-  
   rdfRawData <- reactive({
     rawRDF <- rdfFile()
     tArray <- rawRDF$runs[[1]]$times
@@ -239,7 +254,6 @@ serverProcessing <- function(input, output)
   sliderTraceSelected <- reactive({
     input$selectedTrace
   })
-  
   ################################################################################
   # GENERATE THE CHARTS HERE
   ################################################################################
@@ -254,9 +268,6 @@ serverProcessing <- function(input, output)
   })
   # ENVELOPE
   output$plotRdfEnv <- renderDygraph({
-    #dataEOCYPctls <- envelopeChartData()[[1]]
-    #dataMonthlyPctls <- envelopeChartData()[[2]]
-    #dataAnnualSumPctl <- envelopeChartData()[[4]]
     s1 = paste(envelopeRangeSelected()[1]*100,"%",sep="")
     s2 = paste(envelopeRangeSelected()[5]*100,"%",sep="")
     data <- envelopeAggSelected()
@@ -264,7 +275,8 @@ serverProcessing <- function(input, output)
     dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
     dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
     dySeries(c("25%", "50%", "75%"), label = "Median", strokeWidth = 2, color = "black") %>%
-    dyOptions(drawGrid = TRUE)
+    dyOptions(drawGrid = TRUE) %>%
+    dyLegend(show = "follow", width = 300)
   })
   # ENVELOPE LOGIC AND OPTIONS
   envelopeAggSelected <- reactive({
@@ -283,7 +295,8 @@ serverProcessing <- function(input, output)
     dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
     dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
     dySeries(c("X25.", "X50.", "X75."), label = "Median", strokeWidth = 2, color = "black") %>%
-    dyOptions(drawGrid = TRUE) %>%
+    dyOptions(drawGrid = TRUE)  %>%
+    dyLegend(show = "follow", width = 300) %>%
     dyAxis(name="x" , valueFormatter = "function(d){ date = new Date(d); return (date.getFullYear()-1000)/10; }", 
            axisLabelFormatter = "function(d){ return Math.round((d.getFullYear()-1000)/10) }" )
   })
@@ -292,7 +305,6 @@ serverProcessing <- function(input, output)
     inputRange <- input$excChartRange
     pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
   })
-  
   ################################################################################
   # GENERATE CHART DATA 
   ################################################################################
@@ -347,7 +359,6 @@ serverProcessing <- function(input, output)
     sortedDataPctlsXts <- as.xts(sortedDataPctlsXts[-1], order.by = as.Date(paste0(sortedDataPctlsXts$V1,"-01-01",format="%Y-01-01")))
     sortedDataPctlsXts
   })
-  
   ################################################################################
   # GENERATE THE DATA TABLE DISPLAY HERE
   ################################################################################
@@ -368,7 +379,6 @@ serverProcessing <- function(input, output)
     'Date',  fontWeight = 'bold'
     )
   )
-  
   ################################################################################
   # DATA TABLE FUNCTIONS  
   ################################################################################
@@ -380,7 +390,6 @@ serverProcessing <- function(input, output)
     {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
   )
 }
-
 ############################################################################################
 # GENERATE DASHBOARD INTERFACE
 ############################################################################################
