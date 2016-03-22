@@ -73,7 +73,7 @@ userInterface <- dashboardPage(
           "only testing RDF files for MTOM and CRSS have been uploaded to the server. The option ",
           "to upload your own RDF file has not been programmed yet.",
           br(),
-          "2. Once a model has been selected another drop down box will be populated with the slot names ",
+          "2. Once a model has been selected, another drop down box will be populated with the slot names ",
           "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
           "to select or you may type in partial names to filter the available slots in the list. ",
           "The drop-down box may take a few seconds to generate.",
@@ -84,9 +84,9 @@ userInterface <- dashboardPage(
           h2("Information"),
           "This interface allows users to query, subset, view, and plot RiverWare RDF model outputs. ",
           "This tool is primarily meant to support U.S. Bureau of Reclamation modeling and analysis ",
-          "efforts with the 24-Month Study, Mid-Term Operations Model and Colorado River Simulation ",
+          "efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation ",
           "System models. Although the stated purpose is to support USBR, the tool is being developed ",
-          "to be as generic as possible so as to enable other users to use is so long as a RiverWare ",
+          "to be as generic as possible so as to enable other users to use it so long as a RiverWare ",
           "*.rdf file is provided.",
           br(),br(),
           "The dashboard uses the following R libraries below and is being developed in RStudio. ",
@@ -119,7 +119,8 @@ userInterface <- dashboardPage(
         fluidRow #[JR] PLOTS ARE MAPPED TO A PLOT IN THE server SECTION BELOW
         (
             dygraphOutput("plotRdfTS"),
-            "Note: Click-and-drag to zoom in. Double-click to undo.",
+            "Note: Click-and-drag to zoom in. Double-click to undo. You may click on the slider and then use your ",
+            "keyboard left and right keys to cycle through each trace.",
             htmlOutput("selectedTrace")
         ),
         br(),br(),
@@ -130,7 +131,7 @@ userInterface <- dashboardPage(
             dygraphOutput("plotRdfEnv"),
             br(),
             "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-75 ",
-          "percentiles on the slider, these are already shown by the shaded range",
+            "percentiles on the slider, these are already shown by the shaded range",
             radioButtons("envChartType", label = "Select aggregation: ", 
                   c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
                   selected = "monthly",inline = TRUE),
@@ -232,7 +233,7 @@ serverProcessing <- function(input, output)
   # GET THE NUMBER OF RUNS
   output$selectedTrace <- renderUI({
     sliderInput("selectedTrace", "Select a trace to highlight: ", min=1, max=as.numeric(rdfFile()$meta$number_of_runs), 
-                value=1, animate = TRUE)
+                value=1)
   })
   # GET THE SELECTED TRACE
   sliderTraceSelected <- reactive({
