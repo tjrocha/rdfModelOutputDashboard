@@ -67,12 +67,16 @@ userInterface <- dashboardPage(
         tabName = "home",
         fluidRow
         (
-          h1("RiverWare RDF Model Output Explorer"),
+          h1("BETA TEST: RiverWare RDF Output Explorer"),
           h2("Instructions"),
-          "1. Select a model from the top-most drop down box (ONLY MTOM AND CRSS ARE UPLOADED FOR NOW...).",
+          "1. Select a model from the top-most drop down box. Currently in BETA TESTING phase so ",
+          "only testing RDF files for MTOM and CRSS have been uploaded to the server. The option ",
+          "to upload your own RDF file has not been programmed yet.",
           br(),
           "2. Once a model has been selected another drop down box will be populated with the slot names ",
-          "present in the selected model RDF file. This may take a few seconds to generate.",
+          "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
+          "to select or you may type in partial names to filter the available slots in the list. ",
+          "The crop-down box may take a few seconds to generate.",
           br(),  
           "3. Once a model and a slot has been selected, you may now view charts and data in their respective ",
           "sections via the sidebar. You may change your selections at any time. ",
@@ -111,8 +115,6 @@ userInterface <- dashboardPage(
         "1. Charts shown below are based on the selected model and slot on the sidebar menu. ",
         br(),
         "2. Some plots have interactive elements while some do not. ",
-        br(),
-        "[JR]: WORK ON THIS SECTION IS CURRENTLY IN PROGRESS",
         br(),br(),
         fluidRow #[JR] PLOTS ARE MAPPED TO A PLOT IN THE server SECTION BELOW
         (
@@ -126,8 +128,9 @@ userInterface <- dashboardPage(
           box
           (
             dygraphOutput("plotRdfEnv"),
+            br(),
             "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-90 ",
-          "percentiles on the slider, these ar ealready shown by the shaded range",
+          "percentiles on the slider, these are already shown by the shaded range",
             radioButtons("envChartType", label = "Select aggregation: ", 
                   c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
                   selected = "monthly",inline = TRUE),
@@ -137,8 +140,9 @@ userInterface <- dashboardPage(
           box
           (
             dygraphOutput("plotRdfCDF"),
+            br(),
             "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-90 ",
-            "percentiles on the slider, these ar ealready shown by the shaded range",
+            "percentiles on the slider, these are already shown by the shaded range",
             sliderInput
             ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
           ) 
