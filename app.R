@@ -14,7 +14,7 @@ library(RWDataPlot)
 userInterface <- dashboardPage(
   dashboardHeader
   (
-    title="Model Output Explorer", 
+    title="", 
     dropdownMenu
     (
       type = "notifications",
@@ -51,7 +51,9 @@ userInterface <- dashboardPage(
     (
       menuItem("Home", tabName = "home", icon = icon("home")),
       menuItem("Charts", tabName = "charts", icon = icon("area-chart")),
-      menuItem("Data", tabName = "data", icon = icon("table"))
+      menuItem("Data", tabName = "data", icon = icon("table")),
+      menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/tjrocha/rdfModelOutputDashboard")
+    
     )
   ),
   # DASHBOARD BODY
@@ -68,7 +70,7 @@ userInterface <- dashboardPage(
         (
           h1("RiverWare RDF Model Output Explorer"),
           h2("Instructions"),
-          "1. Select a model fromt he top-most drop down box (ONLY MTOM AND CRSS ARE UPLOADED FOR NOW...).",
+          "1. Select a model from the top-most drop down box (ONLY MTOM AND CRSS ARE UPLOADED FOR NOW...).",
           br(),
           "2. Once a model has been selected another drop down box will be populated with the slot names ",
           "present in the selected model RDF file. This may take a few seconds to generate.",
@@ -105,20 +107,14 @@ userInterface <- dashboardPage(
       (
         tabName = "charts",
         h2("Charts and Graphs"),
-        "Notes: ",
+        "Notes:",
         br(),
-        "This page shows some common charts and graphs to view and summarize the selected slot data. ",
+        "1. Charts shown below are based on the selected model and slot on the sidebar menu. ",
         br(),
-        "[JR]: WORK IN PROGRESS",
+        "2. Some plots have interactive elements while some do not. ",
+        br(),
+        "[JR]: WORK ON THIS SECTION IS CURRENTLY IN PROGRESS",
         br(),br(),
-        #fluidRow
-        #(
-        #  box #[JR] THIS CONTROL GENERATES AN INPUT FOR THE server SECTION BELOW WHICH IN TURN GENERATES THE PLOT THAT IMMEDIATELY FOLLOWS
-        #  (
-        #    title="controls", 
-        #    sliderInput("slider", "Number of observations:", 1, 100, 50)
-        #  )
-        #),
         fluidRow #[JR] PLOTS ARE MAPPED TO A PLOT IN THE server SECTION BELOW
         (
           box
@@ -158,7 +154,7 @@ userInterface <- dashboardPage(
         h2("Data Table"),
         "Notes:",
         br(),
-        "1. Data shown below is based on the selected slot on the sidebar menu. ",
+        "1. Data shown below is based on the selected model and slot on the sidebar menu. ",
         br(),
         "2. Clicking on the Download Data button will save the entire contents of the table as a ",
         "comma-separated-variables (CSV) file on your local machine. ",
