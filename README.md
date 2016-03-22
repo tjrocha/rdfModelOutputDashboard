@@ -9,6 +9,15 @@ as a RiverWare *.rdf file is provided.
 The dashboard uses the following R libraries below and is being developed in [RStudio](https://www.rstudio.com/).
 <BR>[shiny](http://shiny.rstudio.com/)
 <BR>[shinydashboard](https://rstudio.github.io/shinydashboard/index.html)
+<BR>[DT](https://rstudio.github.io/DT/)
+<BR>[xts](https://cran.r-project.org/web/packages/xts/index.html)
+<BR>[zoo](https://cran.r-project.org/web/packages/zoo/index.html)
+<BR>[RWDataPlot](https://github.com/rabutler/RWDataPlot)
 
 An updated test version may be found at the link below; whenever I remember to publish my latest version of the code that is...
 <BR>[shinyapps.io](https://jrocha.shinyapps.io/rdfModelOutputDashboard/)
+
+# Instructions
+<BR>1. Select a model from the top-most drop down box. Currently in BETA TESTING phase so only testing RDF files for MTOM and CRSS have been uploaded to the server. The option to upload your own RDF file has not been programmed yet. 
+<BR>2. Once a model has been selected another drop down box will be populated with the slot names present in the selected model RDF file. You may click on the drop-down box to specify a slot to select or you may type in partial names to filter the available slots in the list. The crop-down box may take a few seconds to generate. 
+<BR>3. Once a model and a slot has been selected, you may now view charts and data in their respective sections via the sidebar. You may change your selections at any time.
