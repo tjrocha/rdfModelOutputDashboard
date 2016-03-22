@@ -76,7 +76,7 @@ userInterface <- dashboardPage(
           "2. Once a model has been selected another drop down box will be populated with the slot names ",
           "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
           "to select or you may type in partial names to filter the available slots in the list. ",
-          "The crop-down box may take a few seconds to generate.",
+          "The drop-down box may take a few seconds to generate.",
           br(),  
           "3. Once a model and a slot has been selected, you may now view charts and data in their respective ",
           "sections via the sidebar. You may change your selections at any time. ",
@@ -129,7 +129,7 @@ userInterface <- dashboardPage(
           (
             dygraphOutput("plotRdfEnv"),
             br(),
-            "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-90 ",
+            "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-75 ",
           "percentiles on the slider, these are already shown by the shaded range",
             radioButtons("envChartType", label = "Select aggregation: ", 
                   c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
@@ -141,7 +141,7 @@ userInterface <- dashboardPage(
           (
             dygraphOutput("plotRdfCDF"),
             br(),
-            "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-90 ",
+            "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-75 ",
             "percentiles on the slider, these are already shown by the shaded range",
             sliderInput
             ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
