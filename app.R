@@ -190,8 +190,6 @@ userInterface <- dashboardPage(
 ############################################################################################
 serverProcessing <- function(input, output) 
 {
-  
-  
   ################################################################################
   # GET THE DATA
   ################################################################################
@@ -236,6 +234,7 @@ serverProcessing <- function(input, output)
     sliderInput("selectedTrace", "Select a trace to highlight: ", min=1, max=as.numeric(rdfFile()$meta$number_of_runs), 
                 value=1, animate = TRUE)
   })
+  # GET THE SELECTED TRACE
   sliderTraceSelected <- reactive({
     input$selectedTrace
   })
@@ -370,7 +369,7 @@ serverProcessing <- function(input, output)
   )
   
   ################################################################################
-  # MISCELLANEOUS FUNCTIONS  
+  # DATA TABLE FUNCTIONS  
   ################################################################################
   # GENERATE DOWNLOAD DATA BUTTON ON THE TABLE TAB
   output$downloadDataTable <- downloadHandler(
