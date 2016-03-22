@@ -53,7 +53,6 @@ userInterface <- dashboardPage(
       menuItem("Charts", tabName = "charts", icon = icon("area-chart")),
       menuItem("Data", tabName = "data", icon = icon("table")),
       menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/tjrocha/rdfModelOutputDashboard")
-    
     )
   ),
   # DASHBOARD BODY
@@ -117,34 +116,31 @@ userInterface <- dashboardPage(
         br(),br(),
         fluidRow #[JR] PLOTS ARE MAPPED TO A PLOT IN THE server SECTION BELOW
         (
-          box
-          (
             dygraphOutput("plotRdfTS"),
-            "Note: Click-and-drag to zoom in. Double-click to undo."
-          ), 
-          box
-          (
-            dygraphOutput("plotRdfEnv"),
             "Note: Click-and-drag to zoom in. Double-click to undo.",
-            sliderInput
-            ("plotEnvelopeRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
-          ) 
+            htmlOutput("selectedTrace")
         ),
+        br(),br(),
         fluidRow #[JR] PLOTS ARE MAPPED TO A PLOT IN THE server SECTION BELOW
         (
           box
           (
-            dygraphOutput("plotRdfPDF"),
-            "Note: Click-and-drag to zoom in. Double-click to undo.",
+            dygraphOutput("plotRdfEnv"),
+            "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-90 ",
+          "percentiles on the slider, these ar ealready shown by the shaded range",
+            radioButtons("envChartType", label = "Select aggregation: ", 
+                  c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
+                  selected = "monthly",inline = TRUE),
             sliderInput
-            ("tsRange", label = "Time series range: ",min = 0, max = 100, value = c(10, 90))
+            ("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
           ), 
           box
           (
             dygraphOutput("plotRdfCDF"),
-            "Note: Click-and-drag to zoom in. Double-click to undo.",
+            "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-90 ",
+            "percentiles on the slider, these ar ealready shown by the shaded range",
             sliderInput
-            ("tsRange", label = "Time series range: ",min = 0, max = 100, value = c(10, 90))
+            ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
           ) 
         )
       ),
@@ -190,23 +186,17 @@ userInterface <- dashboardPage(
 ############################################################################################
 serverProcessing <- function(input, output) 
 {
-  # DEFINE DYNAMIC VARIABLES HERE
   
-  # DEFINE PROCESSING FUNCTIONS AND METHODS HERE
-  output$downloadDataTable <- downloadHandler(
-    filename = function() 
-    {paste('temp',Sys.time(),'.csv', sep='')},
-    content = function(filename) 
-    {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
-  )
   
+  ################################################################################
+  # GET THE DATA
+  ################################################################################
   # GET THE SELECTED MODEL FROM THE UI
   selectedModelName <- reactive({
     modelNameString <-input$selectedModel
     modelName <- strsplit(modelNameString," ")[[1]][1]
     modelName
   })
-  
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
   rdfFile <- reactive({
     rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
@@ -228,64 +218,82 @@ serverProcessing <- function(input, output)
     storage.mode(rdf) <- "numeric"
     rdf
   })
-  
   # GENERATE THE SLOT SELECTION DROP DOWN LIST
   output$selectSlotName <- renderUI({ 
     selectInput("slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))#state.name))#, Selectize = TRUE) 
   })
-  
   # GET THE SELECTED SLOT FROM THE UI
   selectedRDFSlot <- reactive({
     slotName <- input$slotName
     slotName
   })
+  # GET THE NUMBER OF RUNS
+  output$selectedTrace <- renderUI({
+    sliderInput("selectedTrace", "Select a trace to highlight: ", min=1, max=as.numeric(rdf$meta$number_of_runs), 
+                value=1, animate = TRUE)
+  })
+  sliderTraceSelected <- reactive({
+    input$selectedTrace
+  })
   
-  # GENERATE THE PLOTS HERE
-  output$plotRdfTS <- renderDygraph({
-    dygraph(rdfRawData(), main = "Time-Series Plot") %>%
+  ################################################################################
+  # GENERATE THE CHARTS HERE
+  ################################################################################
+  # TRACES
+  output$plotRdfTS <- renderDygraph({ 
+    s1 = paste("V", sliderTraceSelected() + 1, sep="")
+    dygraph(rdfRawData(), main = "Raw Time-Series Plot") %>%
     dySeries(attr(rdfRawData,"dimnames")[1]) %>%
+    dySeries(s1, label = "Actual", strokeWidth = 3, fillGraph = TRUE) %>%
     dyLegend(show = "never") %>%
+    dyOptions(drawGrid = TRUE, colors = "black",strokeWidth = 0.2, strokePattern = "dashed", fillAlpha = .25)
+  })
+  # ENVELOPE
+  output$plotRdfEnv <- renderDygraph({
+    #dataEOCYPctls <- envelopeChartData()[[1]]
+    #dataMonthlyPctls <- envelopeChartData()[[2]]
+    #dataAnnualSumPctl <- envelopeChartData()[[4]]
+    s1 = paste(envelopeRangeSelected()[1]*100,"%",sep="")
+    s2 = paste(envelopeRangeSelected()[5]*100,"%",sep="")
+    data <- envelopeAggSelected()
+    dygraph(data, main = "Envelope Plot, Shaded Area is the IQR") %>%
+    dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
+    dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
+    dySeries(c("25%", "50%", "75%"), label = "Median", strokeWidth = 2, color = "black") %>%
     dyOptions(drawGrid = TRUE)
   })
-  
-  output$plotRdfEnv <- renderDygraph({
-    dygraph(rdfRawData(), main = "Envelope Plot") %>%
-      dySeries(attr(rdfRawData,"dimnames")[1]) %>%
-      dyLegend(show = "never") %>%
-      dyOptions(drawGrid = TRUE)
+  # ENVELOPE LOGIC AND OPTIONS
+  envelopeAggSelected <- reactive({
+    switch(input$envChartType, "eocy" = envelopeChartData()[[1]], "monthly" = envelopeChartData()[[2]], "cysum" = envelopeChartData()[[4]])
   })
-  
-  output$plotRdfPDF <- renderDygraph({
-    dygraph(rdfRawData(), main = "Probability Density Plot") %>%
-      dySeries(attr(rdfRawData,"dimnames")[1]) %>%
-      dyLegend(show = "never") %>%
-      dyOptions(drawGrid = TRUE)
+  envelopeRangeSelected <- reactive({
+    inputRange <- input$envChartRange
+    pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
   })
-  
+  # EXCEEDANCE
   output$plotRdfCDF <- renderDygraph({
-    dygraph(rdfRawData(), main = "Cumulative Distribution Plot") %>%
-      dySeries(attr(rdfRawData,"dimnames")[1]) %>%
-      dyLegend(show = "never") %>%
-      dyOptions(drawGrid = TRUE)
+    s1 = paste("X",exceedanceRangeSelected()[1]*100,".",sep="")
+    s2 = paste("X",exceedanceRangeSelected()[5]*100,".",sep="")
+    data <- pctExcChartData()
+    dygraph(data, main = "Percent Exceedance Plot, Shaded Area is the IQR", xlab = "Percent Exceedance (%)") %>%
+    dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
+    dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
+    dySeries(c("X25.", "X50.", "X75."), label = "Median", strokeWidth = 2, color = "black") %>%
+    dyOptions(drawGrid = TRUE) %>%
+    dyAxis(name="x" , valueFormatter = "function(d){ date = new Date(d); return (date.getFullYear()-1000)/10; }", 
+           axisLabelFormatter = "function(d){ return Math.round((d.getFullYear()-1000)/10) }" )
+  })
+  # EXCEEDANCE LOGIC AND OPTIONS
+  exceedanceRangeSelected <- reactive({
+    inputRange <- input$excChartRange
+    pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
   })
   
-  # GET DATA FROM RDF HERE, see shiny sample #030 for dynamic filtering of the table based on input variables
-  output$tableRdfData <- DT::renderDataTable(DT::datatable
-  (
-    {data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))},
-    rownames = FALSE, 
-    filter='top', 
-    options = list
-    (
-      pageLength = 10, 
-      lengthMenu = c(12, 24, 36, 365)
-    )
-  ) %>%
-  formatStyle('Date',  fontWeight = 'bold')
-  )
-  
-  # FUNCTION TO PERFORM STATS, AGGREGATION AND ANALYSIS
-  output$statsTable <- reactive({
+  ################################################################################
+  # GENERATE CHART DATA 
+  ################################################################################
+  # OLD FUNCTION THAT DID ALL THE STATS, AGGREGATION, AND ANALYSIS
+  statsTable <- reactive({
     # DEFINE PERCENTILE VALUES OF INTEREST
     toPctls <- function(rdfRawData) quantile(rdfRawData, c(.10,.25,.50,.75,.90))
     # GET PERCENTILE VALUES OF ENTIRE ARRAY BY EOCY
@@ -307,7 +315,66 @@ serverProcessing <- function(input, output)
     # PACK XTS ARRAYS INTO A LIST AND OUTPUT
     outList <- list(eocyPctlXts,montPctlXts,annlSumsXts,annlSumsPctlXts,sortedDataPctlsXts)
   })
+  # GENERATE STATS FOR THE ENVELOPE CHART
+  envelopeChartData <- reactive({
+    # DEFINE PERCENTILE VALUES OF INTEREST
+    toPctls <- function(rdfRawData) quantile(rdfRawData, envelopeRangeSelected())
+    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY EOCY
+    eocyPctlXts <- apply.yearly(rdfRawData()[endpoints(rdfRawData(), on="years", k=1)],toPctls)
+    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY MONTH
+    montPctlXts <- apply.monthly(rdfRawData(),toPctls)
+    # GET CY ANNUAL SUMS BY TRACE 
+    annlSumsXts <- apply.yearly(rdfRawData(),mean)*12
+    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY CY ANNUAL SUMS 
+    annlSumsPctlXts <- apply.yearly(annlSumsXts,toPctls)
+    outList <- list(eocyPctlXts,montPctlXts,annlSumsXts,annlSumsPctlXts)
+  })
+  # GENERATE DATA FOR THE EXCEEDANCE PLOT
+  pctExcChartData <- reactive({
+    # DEFINE PERCENTILE VALUES OF INTEREST
+    toPctls <- function(rdfRawData) quantile(rdfRawData, exceedanceRangeSelected())
+    # SORT EACH COLUMN DESCENDING FOR MONTHLY VALUE CDF PLOTS
+    sortedDataXts <- apply(rdfRawData(),2,sort,decreasing=TRUE)
+    # GET PERCENTILE VALUES OF SORTED DATA AT EACH ROW
+    sortedDataPctlsXts <- apply(sortedDataXts, 1, toPctls)
+    # FLIP ARRAY FOR PLOTTING
+    sortedDataPctlsXts <- t(sortedDataPctlsXts[nrow(sortedDataPctlsXts):1,])
+    sortedDataPctlsXts <- data.frame(cbind(round((1000*array((1:nrow(sortedDataPctlsXts))/nrow(sortedDataPctlsXts)))+1000,0),sortedDataPctlsXts))
+    sortedDataPctlsXts <- as.xts(sortedDataPctlsXts[-1], order.by = as.Date(paste0(sortedDataPctlsXts$V1,"-01-01",format="%Y-01-01")))
+    sortedDataPctlsXts
+  })
   
+  ################################################################################
+  # GENERATE THE DATA TABLE DISPLAY HERE
+  ################################################################################
+  output$tableRdfData <- DT::renderDataTable(
+    DT::datatable
+    (
+    {data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))},
+    rownames = FALSE, 
+    filter='top', 
+    options = list
+    (
+    pageLength = 10, 
+    lengthMenu = c(12, 24, 36, 365)
+    )
+    ) %>%
+      formatStyle
+    (
+    'Date',  fontWeight = 'bold'
+    )
+  )
+  
+  ################################################################################
+  # MISCELLANEOUS FUNCTIONS  
+  ################################################################################
+  # GENERATE DOWNLOAD DATA BUTTON ON THE TABLE TAB
+  output$downloadDataTable <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
+  )
 }
 
 ############################################################################################
