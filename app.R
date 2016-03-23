@@ -164,6 +164,23 @@ userInterface <- dashboardPage(
             sliderInput
             ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
           ) 
+        ),
+        fluidRow #[JR] PLOTS ARE MAPPED TO A PLOT IN THE server SECTION BELOW
+        (
+          box
+          (
+            dygraphOutput("plotRdfThreshCheck"),
+            br(),
+            "Note: Click-and-drag to zoom in. Double-click to undo. Select a data aggregation scheme ",
+            "and a threshold to compare the data against",
+            radioButtons("threshDataType", label = "Select aggregation: ", 
+                     c("Raw Data" = "none", "EOCY Value" = "eocy", "CY Sum"="cysum"),
+                     selected = "none",inline = TRUE),
+            radioButtons("threshCompType", label = "Select threshold comparison: ", 
+                     c("Greater Than" = "GT", "Less Than"="LT"),
+                     selected = "LT",inline = TRUE),
+            textInput("threshValue", "Select Value", "0")
+          ) 
         )
       ),
       tabItem
@@ -284,6 +301,10 @@ serverProcessing <- function(input, output)
   })
   envelopeRangeSelected <- reactive({
     inputRange <- input$envChartRange
+    if (inputRange[1] == 25||inputRange[1] == 50 ||inputRange[1] == 75 || inputRange[1] == inputRange[2])
+      inputRange[1] = inputRange[1] - 1
+    if (inputRange[2] == 25||inputRange[2] == 50 ||inputRange[2] == 75)
+      inputRange[2] = inputRange[2] + 1
     pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
   })
   # EXCEEDANCE
@@ -303,34 +324,23 @@ serverProcessing <- function(input, output)
   # EXCEEDANCE LOGIC AND OPTIONS
   exceedanceRangeSelected <- reactive({
     inputRange <- input$excChartRange
+    if (inputRange[1] == 25||inputRange[1] == 50 ||inputRange[1] == 75 || inputRange[1] == inputRange[2])
+      inputRange[1] = inputRange[1] - 1
+    if (inputRange[2] == 25||inputRange[2] == 50 ||inputRange[2] == 75)
+      inputRange[2] = inputRange[2] + 1
     pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
+  })
+  # THRESHOLD
+  output$plotRdfThreshCheck <- renderDygraph({
+    data <- thresoldChartData()
+    dygraph(data, main = "Percent Of Traces That Meet A Threshold") %>%
+      dySeries(attr(data,"dimnames")[1], label = "Percent of Traces", strokeWidth = 2, color = "black") %>%
+      dyOptions(drawGrid = TRUE)  %>%
+      dyLegend(show = "follow", width = 300) 
   })
   ################################################################################
   # GENERATE CHART DATA 
   ################################################################################
-  # OLD FUNCTION THAT DID ALL THE STATS, AGGREGATION, AND ANALYSIS
-  statsTable <- reactive({
-    # DEFINE PERCENTILE VALUES OF INTEREST
-    toPctls <- function(rdfRawData) quantile(rdfRawData, c(.10,.25,.50,.75,.90))
-    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY EOCY
-    eocyPctlXts <- apply.yearly(rdfRawData()[endpoints(rdfRawData(), on="years", k=1)],toPctls)
-    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY MONTH
-    montPctlXts <- apply.monthly(rdfRawData(),toPctls)
-    # GET CY ANNUAL SUMS BY TRACE 
-    annlSumsXts <- apply.yearly(rdfRawData(),mean)*12
-    # GET PERCENTILE VALUES OF ENTIRE ARRAY BY CY ANNUAL SUMS 
-    annlSumsPctlXts <- apply.yearly(annlSumsXts,toPctls)
-    # SORT EACH COLUMN DESCENDING FOR MONTHLY VALUE CDF PLOTS
-    sortedDataXts <- apply(rdfRawData(),2,sort,decreasing=TRUE)
-    # GET PERCENTILE VALUES OF SORTED DATA AT EACH ROW
-    sortedDataPctlsXts <- apply(sortedDataXts, 1, toPctls)
-    # FLIP ARRAY FOR PLOTTING
-    sortedDataPctlsXts <- t(sortedDataPctlsXts[nrow(sortedDataPctlsXts):1,])
-    sortedDataPctlsXts <- data.frame(cbind(round((1000*array((1:nrow(sortedDataPctlsXts))/nrow(sortedDataPctlsXts)))+1000,0),sortedDataPctlsXts))
-    sortedDataPctlsXts <- as.xts(sortedDataPctlsXts[-1], order.by = as.Date(paste0(sortedDataPctlsXts$V1,"-01-01",format="%Y-01-01")))
-    # PACK XTS ARRAYS INTO A LIST AND OUTPUT
-    outList <- list(eocyPctlXts,montPctlXts,annlSumsXts,annlSumsPctlXts,sortedDataPctlsXts)
-  })
   # GENERATE STATS FOR THE ENVELOPE CHART
   envelopeChartData <- reactive({
     # DEFINE PERCENTILE VALUES OF INTEREST
@@ -340,7 +350,7 @@ serverProcessing <- function(input, output)
     # GET PERCENTILE VALUES OF ENTIRE ARRAY BY MONTH
     montPctlXts <- apply.monthly(rdfRawData(),toPctls)
     # GET CY ANNUAL SUMS BY TRACE 
-    annlSumsXts <- apply.yearly(rdfRawData(),mean)*12
+    annlSumsXts <- apply.yearly(rdfRawData(),colSums)
     # GET PERCENTILE VALUES OF ENTIRE ARRAY BY CY ANNUAL SUMS 
     annlSumsPctlXts <- apply.yearly(annlSumsXts,toPctls)
     outList <- list(eocyPctlXts,montPctlXts,annlSumsXts,annlSumsPctlXts)
@@ -358,6 +368,36 @@ serverProcessing <- function(input, output)
     sortedDataPctlsXts <- data.frame(cbind(round((1000*array((1:nrow(sortedDataPctlsXts))/nrow(sortedDataPctlsXts)))+1000,0),sortedDataPctlsXts))
     sortedDataPctlsXts <- as.xts(sortedDataPctlsXts[-1], order.by = as.Date(paste0(sortedDataPctlsXts$V1,"-01-01",format="%Y-01-01")))
     sortedDataPctlsXts
+  })
+  # GENERATE DATA FOR THE THRESHOLD CHECK
+  thresoldChartData <- reactive({
+    # GENERATE DATA BASED ON THRESHOLD TYPE
+    threshData <- input$threshDataType
+    if (threshData == "eocy")
+      rdfXTS <- rdfRawData()[.indexmon(rdfRawData()) == 11]
+    else if (threshData == "cysum")
+      rdfXTS <- apply.yearly(rdfRawData(),colSums)
+    else if (threshData == "none")
+      rdfXTS <- rdfRawData()
+    else
+      stop("Not a valid threshold comparison option")
+    # GET THRESHOLD VALUE
+    valueIn <- input$threshValue
+    # DETERMINE COMPARISON TYPE AND GET A BOOLEAN ARRAY OF VALUES THAT MEET THE THRESHOLD
+    comparison <- input$threshCompType
+    if (comparison == "GT")
+      boolArray <- rdfXTS > valueIn  
+    else if (comparison == "LT")
+      boolArray <- rdfXTS < valueIn 
+    else
+      stop(paste(comparison, " is not a valid input. Use GT for greater than or LT for less than", sep=""))
+    # GET A COUNT OF TRUE VALUES AT EACH COLUMN FOR EACH ROW
+    trueCount <- xts(rowSums(boolArray),index(boolArray))
+    # GET THE TOTAL COUNT OF COLUMNS
+    totalCount <- length(dimnames(boolArray)[[2]])
+    # RETURN PERCENTAGE OF VALUES THAT MEET THE COMPARISON TYPE
+    thresholdPctgs <- trueCount/totalCount * 100
+    thresholdPctgs
   })
   ################################################################################
   # GENERATE THE DATA TABLE DISPLAY HERE
