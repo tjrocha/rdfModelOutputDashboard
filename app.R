@@ -60,7 +60,7 @@ userInterface <- dashboardPage(
     fileInput
     (
       'rdfFileIn', 
-      'or choose *.rdf file to upload (< 30MB)',
+      'or choose an *.rdf file (30MB file size limit)',
       accept = c('.rdf')
     ),
     htmlOutput("selectSlotName"),
@@ -86,9 +86,8 @@ userInterface <- dashboardPage(
         (
           h1("BETA TEST: RiverWare RDF Output Explorer"),
           h2("Instructions"),
-          "1. Select a model from the top-most drop down box. Currently in BETA TESTING phase so ",
-          "only testing RDF files for MTOM and CRSS have been uploaded to the server. The option ",
-          "to upload your own RDF file has not been programmed yet.",
+          "1. Select a model from the top-most drop down box or click on 'Choose File' to select and open ",
+          "an RDF file. The current file size limit is 30MB while in the beta testing phase.",
           br(),
           "2. Once a model has been selected, another drop down box will be populated with the slot names ",
           "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
