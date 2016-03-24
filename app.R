@@ -179,7 +179,7 @@ userInterface <- dashboardPage(
             radioButtons("threshCompType", label = "Select threshold comparison: ", 
                      c("Greater Than" = "GT", "Less Than"="LT"),
                      selected = "LT",inline = TRUE),
-            textInput("threshValue", "Select Value", "0")
+            textInput("threshValue", "Input Value(s) Example: 1075,1050,1025", "0")
           ) 
         )
       ),
@@ -293,7 +293,7 @@ serverProcessing <- function(input, output)
     dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
     dySeries(c("25%", "50%", "75%"), label = "Median", strokeWidth = 2, color = "black") %>%
     dyOptions(drawGrid = TRUE) %>%
-    dyLegend(show = "follow", width = 300)
+    dyLegend(show = "auto", width = 300)
   })
   # ENVELOPE LOGIC AND OPTIONS
   envelopeAggSelected <- reactive({
@@ -317,7 +317,7 @@ serverProcessing <- function(input, output)
     dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
     dySeries(c("X25.", "X50.", "X75."), label = "Median", strokeWidth = 2, color = "black") %>%
     dyOptions(drawGrid = TRUE)  %>%
-    dyLegend(show = "follow", width = 300) %>%
+    dyLegend(show = "auto", width = 300) %>%
     dyAxis(name="x" , valueFormatter = "function(d){ date = new Date(d); return (date.getFullYear()-1000)/10; }", 
            axisLabelFormatter = "function(d){ return Math.round((d.getFullYear()-1000)/10) }" )
   })
@@ -334,9 +334,8 @@ serverProcessing <- function(input, output)
   output$plotRdfThreshCheck <- renderDygraph({
     data <- thresoldChartData()
     dygraph(data, main = "Percent Of Traces That Meet A Threshold") %>%
-      dySeries(attr(data,"dimnames")[1], label = "Percent of Traces", strokeWidth = 2, color = "black") %>%
       dyOptions(drawGrid = TRUE)  %>%
-      dyLegend(show = "follow", width = 300) 
+      dyLegend(show = "auto", width = 300) 
   })
   ################################################################################
   # GENERATE CHART DATA 
@@ -381,18 +380,33 @@ serverProcessing <- function(input, output)
       rdfXTS <- rdfRawData()
     else
       stop("Not a valid threshold comparison option")
-    # GET THRESHOLD VALUE
-    valueIn <- input$threshValue
+    # GET THRESHOLD VALUES
+    valuesList <- as.numeric(unlist(strsplit(input$threshValue,",")))
+    for (ithVal in 1:length(valuesList)){
+      valueIn <- valuesList[ithVal]
     # DETERMINE COMPARISON TYPE AND GET A BOOLEAN ARRAY OF VALUES THAT MEET THE THRESHOLD
     comparison <- input$threshCompType
-    if (comparison == "GT")
+    if (comparison == "GT"){
       boolArray <- rdfXTS > valueIn  
-    else if (comparison == "LT")
+      ithName <- "GreaterThan"
+    }
+    else if (comparison == "LT"){
       boolArray <- rdfXTS < valueIn 
+      ithName <- "LessThan"
+    }
     else
       stop(paste(comparison, " is not a valid input. Use GT for greater than or LT for less than", sep=""))
+    ithName <- paste(ithName,valueIn,sep="")
     # GET A COUNT OF TRUE VALUES AT EACH COLUMN FOR EACH ROW
-    trueCount <- xts(rowSums(boolArray),index(boolArray))
+    if (ithVal == 1){
+      trueCount <- xts(rowSums(boolArray),index(boolArray))
+    }
+    else{
+      trueCountTemp <- xts(rowSums(boolArray),index(boolArray))
+      trueCount <- merge(trueCount,trueCountTemp)
+    }
+    colnames(trueCount)[ithVal] <- ithName
+    }
     # GET THE TOTAL COUNT OF COLUMNS
     totalCount <- length(dimnames(boolArray)[[2]])
     # RETURN PERCENTAGE OF VALUES THAT MEET THE COMPARISON TYPE
