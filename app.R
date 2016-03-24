@@ -60,7 +60,7 @@ userInterface <- dashboardPage(
     fileInput
     (
       'rdfFileIn', 
-      'or choose *.rdf file to upload',
+      'or choose *.rdf file to upload (< 30MB)',
       accept = c('.rdf')
     ),
     htmlOutput("selectSlotName"),
@@ -224,6 +224,8 @@ userInterface <- dashboardPage(
 ############################################################################################
 serverProcessing <- function(input, output) 
 {
+  # INCREASE SHINY UPLOAD SIZE TO 30MB
+  options(shiny.maxRequestSize=30*1024^2) 
   ################################################################################
   # GET THE DATA
   ################################################################################
@@ -236,6 +238,9 @@ serverProcessing <- function(input, output)
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
   rdfFile <- reactive({
     rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
+    if (!is.null(input$rdfFileIn)){
+      rdfFileName <- input$rdfFileIn$datapath
+    }
     rawRDF <- read.rdf(rdfFileName)
     rawRDF
   })
