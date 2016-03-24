@@ -238,7 +238,7 @@ serverProcessing <- function(input, output)
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
   rdfFile <- reactive({
     rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
-    if (!is.null(input$rdfFileIn)){
+    if (!is.null(input$rdfFileIn) && selectedModelName() == "---"){
       rdfFileName <- input$rdfFileIn$datapath
     }
     rawRDF <- read.rdf(rdfFileName)
@@ -281,7 +281,12 @@ serverProcessing <- function(input, output)
   ################################################################################
   # TRACES
   output$plotRdfTS <- renderDygraph({ 
-    s1 = paste("V", sliderTraceSelected() + 1, sep="")
+    if (rdfFile()$meta$number_of_runs == 1){
+      s1 = "V1"
+    }
+    else {
+      s1 = paste("V", sliderTraceSelected() + 1, sep="")
+    }
     dygraph(rdfRawData(), main = "Raw Time-Series Plot") %>%
     dySeries(attr(rdfRawData,"dimnames")[1]) %>%
     dySeries(s1, label = "Actual", strokeWidth = 3, fillGraph = TRUE) %>%
