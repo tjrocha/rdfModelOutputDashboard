@@ -222,7 +222,7 @@ userInterface <- dashboardPage(
 ############################################################################################
 # SERVER SIDE FUNCTIONS, METHODS, AND PROCESSING
 ############################################################################################
-serverProcessing <- function(input, output) 
+serverProcessing <- function(input, output, clientData, session)
 {
   # INCREASE SHINY UPLOAD SIZE TO 30MB
   options(shiny.maxRequestSize=30*1024^2) 
@@ -234,6 +234,19 @@ serverProcessing <- function(input, output)
     modelNameString <-input$selectedModel
     modelName <- strsplit(modelNameString," ")[[1]][1]
     modelName
+  })
+  # [JR] PLACEHOLDERS FOR SOME LOGIC TO CLEAR THE MODEL AND FILE SELECTION OPTIONS IF ONE IS SELECTED...
+  clearSelectedModel <- reactive({
+    updateSelectInput(
+      session, 
+      "selectedModel",
+      choices = c("---", "24MS (24-Month Study)", "MTOM (Mid-Term Operations Model)", "CRSS (Colorado River Simulation System)"),
+      selected = "---"
+    )
+  })
+  clearInputFileSelected <- reactive({
+    
+    
   })
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
   rdfFile <- reactive({
@@ -260,7 +273,7 @@ serverProcessing <- function(input, output)
   })
   # GENERATE THE SLOT SELECTION DROP DOWN LIST
   output$selectSlotName <- renderUI({ 
-    selectInput("slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))#state.name))#, Selectize = TRUE) 
+    selectInput("slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))#state.name))#, Selectize = TRUE, size = 10) 
   })
   # GET THE SELECTED SLOT FROM THE UI
   selectedRDFSlot <- reactive({
