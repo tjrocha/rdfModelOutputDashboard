@@ -1,4 +1,17 @@
 ############################################################################################
+# This application was built in RStudio by Jon Rocha at jrocha@usbr.gov
+#
+# The application allows users to query, subset, view, and plot RiverWare RDF model outputs. 
+# This is primarily meant to support U.S. Bureau of Reclamation (USBR) modeling and analysis 
+# efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation 
+# System models. Although the stated purpose is to support USBR, the tool is being developed 
+# to be as generic as possible so as to enable other users to use it so long as a RiverWare 
+# *.rdf file is provided. 
+#
+# Application is distributed with an MIT license, March 2016
+############################################################################################
+
+############################################################################################
 # LOAD REQUIRED PACKAGES
 ############################################################################################
 rm(list=ls())
@@ -44,7 +57,7 @@ serverProcessing <- function(input, output, clientData, session)
     # 4. read.zoo - convert dataframe to zoo matrix
     # 5. as.xts - convert zoo matrix to XTS
     # 6. Storage.mode() - convert char values in the XTS matrix to numeric
-    rdf <- as.xts(read.zoo(data.frame(cbind(tArray,rdfSlotToMatrix(rawRDF, selectedRDFSlot())))))
+    rdf <- as.xts(read.zoo(data.frame(cbind(tArray,rdfSlotToMatrix(rawRDF, selectedRDFSlot())))),na.rm=TRUE)
     storage.mode(rdf) <- "numeric"
     rdf
   })
@@ -169,7 +182,7 @@ serverProcessing <- function(input, output, clientData, session)
   # GENERATE STATS FOR THE ENVELOPE CHART
   envelopeChartData <- reactive({
     # DEFINE PERCENTILE VALUES OF INTEREST
-    toPctls <- function(rdfRawData) quantile(rdfRawData, envelopeRangeSelected())
+    toPctls <- function(rdfRawData) quantile(rdfRawData, envelopeRangeSelected(), na.rm=TRUE)
     # GET PERCENTILE VALUES OF ENTIRE ARRAY BY EOCY
     eocyPctlXts <- apply.yearly(rdfRawData()[endpoints(rdfRawData(), on="years", k=1)],toPctls)
     # GET PERCENTILE VALUES OF ENTIRE ARRAY BY MONTH

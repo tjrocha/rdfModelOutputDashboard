@@ -1,4 +1,17 @@
 ############################################################################################
+# This application was built in RStudio by Jon Rocha at jrocha@usbr.gov
+#
+# The application allows users to query, subset, view, and plot RiverWare RDF model outputs. 
+# This is primarily meant to support U.S. Bureau of Reclamation (USBR) modeling and analysis 
+# efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation 
+# System models. Although the stated purpose is to support USBR, the tool is being developed 
+# to be as generic as possible so as to enable other users to use it so long as a RiverWare 
+# *.rdf file is provided. 
+#
+# Application is distributed with an MIT license, March 2016
+############################################################################################
+
+############################################################################################
 # LOAD REQUIRED PACKAGES
 ############################################################################################
 rm(list=ls())
