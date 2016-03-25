@@ -51,19 +51,9 @@ userInterface <- dashboardPage(
   dashboardSidebar
   (
     # DEFINE SIDEBAR ITEMS
-    selectInput
-    (
-      "selectedModel", 
-      "1. Select a Model", 
-      c("---", "24MS (24-Month Study)", "MTOM (Mid-Term Operations Model)", "CRSS (Colorado River Simulation System)")
-    ),
-    fileInput
-    (
-      'rdfFileIn', 
-      'or choose an *.rdf file (30MB file size limit)',
-      accept = c('.rdf')
-    ),
-    htmlOutput("selectSlotName"),
+    uiOutput("selectModelName"),
+    uiOutput("resettableFileInput"),
+    uiOutput("selectSlotName"),
     sidebarMenu
     (
       menuItem("Home", tabName = "home", icon = icon("home")),
@@ -234,23 +224,10 @@ serverProcessing <- function(input, output, clientData, session)
     modelName <- strsplit(modelNameString," ")[[1]][1]
     modelName
   })
-  # [JR] PLACEHOLDERS FOR SOME LOGIC TO CLEAR THE MODEL AND FILE SELECTION OPTIONS IF ONE IS SELECTED...
-  clearSelectedModel <- reactive({
-    updateSelectInput(
-      session, 
-      "selectedModel",
-      choices = c("---", "24MS (24-Month Study)", "MTOM (Mid-Term Operations Model)", "CRSS (Colorado River Simulation System)"),
-      selected = "---"
-    )
-  })
-  clearInputFileSelected <- reactive({
-    
-    
-  })
   # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
   rdfFile <- reactive({
     rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
-    if (!is.null(input$rdfFileIn) && selectedModelName() == "---"){
+    if (!is.null(input$rdfFileIn) && selectedModelName() == input$rdfFileIn$name){
       rdfFileName <- input$rdfFileIn$datapath
     }
     rawRDF <- read.rdf(rdfFileName)
@@ -270,9 +247,35 @@ serverProcessing <- function(input, output, clientData, session)
     storage.mode(rdf) <- "numeric"
     rdf
   })
+  # GENERATE THE MODEL SELECTION DROP DOWN LIST
+  output$selectModelName <- renderUI({
+    input$rdfFileIn
+    if (is.null(input$rdfFileIn)){
+      selectInput(
+        "selectedModel", "1. Select a Model", 
+        c("---", "24MS (24-Month Study)", 
+        "MTOM (Mid-Term Operations Model)", 
+        "CRSS (Colorado River Simulation System)")
+      )
+    }
+    else{
+      selectInput(
+        "selectedModel", "1. Select a Model", 
+        c(input$rdfFileIn$name, "24MS (24-Month Study)", 
+          "MTOM (Mid-Term Operations Model)", 
+          "CRSS (Colorado River Simulation System)")
+      )
+    }
+  })
   # GENERATE THE SLOT SELECTION DROP DOWN LIST
   output$selectSlotName <- renderUI({ 
-    selectInput("slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))#state.name))#, Selectize = TRUE, size = 10) 
+    selectInput(
+      "slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))
+  })
+  # GENERATE THE FILE SELECTION BUTTON
+  output$resettableFileInput <- renderUI({
+    input$selectedModel
+    fileInput('rdfFileIn', 'or upload an *.rdf file', accept = c('.rdf'))
   })
   # GET THE SELECTED SLOT FROM THE UI
   selectedRDFSlot <- reactive({
@@ -465,6 +468,21 @@ serverProcessing <- function(input, output, clientData, session)
     content = function(filename) 
     {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
   )
+  ################################################################################
+  # INFORMATION BOXES 
+  ################################################################################
+  output$modelInfoBox <- renderInfoBox({
+    infoBox(
+      paste("Selected RDF: ",selectedModelName(),sep=""), icon = icon("cubes"),
+      color = "yellow"
+    )
+  })
+  output$slotInfoBox <- renderInfoBox({
+    infoBox(
+      paste("Selected Slot: ", selectedRDFSlot(),sep=""), icon = icon("cube"),
+      color = "yellow"
+    )
+  })
 }
 ############################################################################################
 # GENERATE DASHBOARD INTERFACE
