@@ -106,6 +106,72 @@ serverProcessing <- function(input, output, clientData, session)
     input$selectedTrace
   })
   ################################################################################
+  # GET RDF AND SLOT INFO
+  ################################################################################
+  # GET SELECTED RDF INFORMATION
+  getRdfInfo <- reactive({
+    rdfInfo <- data.frame(matrix(NA, nrow = 8, ncol = 2))
+    labels <- c(
+      "Start", "End", "Interval", "#Runs", "Run Name", "Run By","Run Date","Run Rules"
+    )
+    info <- c(
+      rdfFile()$runs[[1]]$start, # RW START DATE
+      rdfFile()$runs[[1]]$end, # RW END DATE
+      rdfFile()$runs[[1]]$time_step_unit, # MODEL TIME STEP
+      rdfFile()$meta$number_of_runs, # N-RUNS
+      rdfFile()$meta$name, # MRM RUN NAME
+      rdfFile()$meta$owner, # USER NAME
+      rdfFile()$meta$create_date, # MODEL RUN DATE
+      rdfFile()$runs[[1]]$rule_set # SELECTED RULES
+    )
+    rdfInfo[,1] <- labels
+    rdfInfo[,2] <- info
+    rdfInfo <- data.frame(rdfInfo)
+    names(rdfInfo) <- c("from","message")
+    rdfInfo
+  })
+  # GET SELECTED SLOT INFORMATION
+  getSlotInfo <- reactive({
+    slotInfo <- data.frame(matrix(NA, nrow = 5, ncol = 2))
+    labels <- c(
+      "Units", "Scale", "Object", "Object Name", "Object Slot"
+    )
+    info <- c(
+      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$units",sep=""))),
+      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$scale",sep=""))),
+      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_type",sep=""))),
+      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_name",sep=""))),
+      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$slot_name",sep="")))
+    )
+    slotInfo[,1] <- labels
+    slotInfo[,2] <- info
+    slotInfo <- data.frame(slotInfo)
+    names(slotInfo) <- c("from","message")
+    slotInfo
+  })
+  output$rdfInfoMenu <- renderMenu({
+    # Code to generate each of the messageItems here, in a list. This assumesslotInfoMenu
+    # that messageData is a data frame with two columns, 'from' and 'message'.
+    msgs <- apply(getRdfInfo(), 1, function(row) {
+      messageItem(from = row[["from"]], message = row[["message"]])
+    })
+    
+    # This is equivalent to calling:
+    #   dropdownMenu(type="messages", msgs[[1]], msgs[[2]], ...)
+    dropdownMenu(type = "messages", .list = msgs)
+  })
+  output$slotInfoMenu <- renderMenu({
+    # Code to generate each of the messageItems here, in a list. This assumes
+    # that messageData is a data frame with two columns, 'from' and 'message'.
+    msgs <- apply(getSlotInfo(), 1, function(row) {
+      messageItem(from = row[["from"]], message = row[["message"]])
+    })
+    
+    # This is equivalent to calling:
+    #   dropdownMenu(type="messages", msgs[[1]], msgs[[2]], ...)
+    dropdownMenu(type = "messages", .list = msgs)
+  })
+  ################################################################################
   # GENERATE THE CHARTS HERE
   ################################################################################
   # TRACES
@@ -258,19 +324,13 @@ serverProcessing <- function(input, output, clientData, session)
   output$tableRdfData <- DT::renderDataTable(
     DT::datatable
     (
-    {data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))},
-    rownames = FALSE, 
-    filter='top', 
-    options = list
-    (
-    pageLength = 10, 
-    lengthMenu = c(12, 24, 36, 365)
-    )
+      {data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))},
+      rownames = FALSE, 
+      filter='top', 
+      options = list(pageLength = 10, lengthMenu = c(12, 24, 36, 365))
     ) %>%
-      formatStyle
-    (
-    'Date',  fontWeight = 'bold'
-    )
+    formatStyle
+    ('Date', fontWeight = 'bold')
   )
   ################################################################################
   # DATA TABLE FUNCTIONS  
@@ -282,19 +342,4 @@ serverProcessing <- function(input, output, clientData, session)
     content = function(filename) 
     {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
   )
-  ################################################################################
-  # INFORMATION BOXES 
-  ################################################################################
-  output$modelInfoBox <- renderInfoBox({
-    infoBox(
-      paste("Selected RDF: ",selectedModelName(),sep=""), icon = icon("cubes"),
-      color = "yellow"
-    )
-  })
-  output$slotInfoBox <- renderInfoBox({
-    infoBox(
-      paste("Selected Slot: ", selectedRDFSlot(),sep=""), icon = icon("cube"),
-      color = "yellow"
-    )
-  })
 }
