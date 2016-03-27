@@ -26,13 +26,12 @@ library(RWDataPlot)
 ############################################################################################
 # SERVER SIDE FUNCTIONS, METHODS, AND PROCESSING
 ############################################################################################
-serverProcessing <- function(input, output, clientData, session)
-{
+serverProcessing <- function(input, output, clientData, session){
   # INCREASE SHINY UPLOAD SIZE TO 30MB
   options(shiny.maxRequestSize=30*1024^2) 
-  ################################################################################
-  # GET THE DATA
-  ################################################################################
+################################################################################
+# GET THE DATA
+################################################################################
   # GET THE SELECTED MODEL FROM THE UI
   selectedModelName <- reactive({
     modelNameString <-input$selectedModel
@@ -86,7 +85,7 @@ serverProcessing <- function(input, output, clientData, session)
   output$selectSlotName <- renderUI({ 
     validate(need(selectedModelName() != "", ''))
     selectInput(
-      "slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))
+      "slotName", "2. Select a slot", c(Choose="",sort(listSlots(rdfFile()))))
   })
   # GENERATE THE FILE SELECTION BUTTON
   output$resettableFileInput <- renderUI({
@@ -100,6 +99,7 @@ serverProcessing <- function(input, output, clientData, session)
   })
   # GET THE NUMBER OF RUNS
   output$selectedTrace <- renderUI({
+    validateSelectedModel()
     sliderInput("selectedTrace", "Select a trace to highlight: ", min=1, max=as.numeric(rdfFile()$meta$number_of_runs), 
                 value=1)
   })
@@ -107,9 +107,17 @@ serverProcessing <- function(input, output, clientData, session)
   sliderTraceSelected <- reactive({
     input$selectedTrace
   })
-  ################################################################################
-  # GET RDF AND SLOT INFO
-  ################################################################################
+  # VALIDATE SELECTED MODEL
+  validateSelectedModel <- reactive({
+    validate(need(selectedModelName() != "", 'Select a Model...'))
+  })
+  # VALIDATE SELECTED SLOT
+  validateSelectedSlot <- reactive({
+    validate(need(selectedRDFSlot() != "", 'Select a Slot from the drop down list...'))
+  })
+################################################################################
+# GET RDF AND SLOT INFO
+################################################################################
   # GET SELECTED RDF INFORMATION
   getRdfInfo <- reactive({
     rdfInfo <- data.frame(matrix(NA, nrow = 7, ncol = 2))
@@ -169,11 +177,13 @@ serverProcessing <- function(input, output, clientData, session)
     })
     dropdownMenu(type = "messages", .list = msgs)
   })
-  ################################################################################
-  # GENERATE THE CHARTS HERE
-  ################################################################################
+################################################################################
+# GENERATE THE CHARTS HERE
+################################################################################
   # TRACES
   output$plotRdfTS <- renderDygraph({ 
+    validateSelectedModel()
+    validateSelectedSlot()
     if (rdfFile()$meta$number_of_runs == 1){
       s1 = "V1"
     }
@@ -188,6 +198,8 @@ serverProcessing <- function(input, output, clientData, session)
   })
   # ENVELOPE
   output$plotRdfEnv <- renderDygraph({
+    validateSelectedModel()
+    validateSelectedSlot()
     s1 = paste(envelopeRangeSelected()[1]*100,"%",sep="")
     s2 = paste(envelopeRangeSelected()[5]*100,"%",sep="")
     data <- envelopeAggSelected()
@@ -212,6 +224,8 @@ serverProcessing <- function(input, output, clientData, session)
   })
   # EXCEEDANCE
   output$plotRdfCDF <- renderDygraph({
+    validateSelectedModel()
+    validateSelectedSlot()
     s1 = paste("X",exceedanceRangeSelected()[1]*100,".",sep="")
     s2 = paste("X",exceedanceRangeSelected()[5]*100,".",sep="")
     data <- pctExcChartData()
@@ -235,14 +249,16 @@ serverProcessing <- function(input, output, clientData, session)
   })
   # THRESHOLD
   output$plotRdfThreshCheck <- renderDygraph({
+    validateSelectedModel()
+    validateSelectedSlot()
     data <- thresoldChartData()
     dygraph(data, main = "Percent Of Traces That Meet A Threshold") %>%
       dyOptions(drawGrid = TRUE)  %>%
       dyLegend(show = "auto", width = 300) 
   })
-  ################################################################################
-  # GENERATE CHART DATA 
-  ################################################################################
+################################################################################
+# GENERATE CHART DATA 
+################################################################################
   # GENERATE STATS FOR THE ENVELOPE CHART
   envelopeChartData <- reactive({
     # DEFINE PERCENTILE VALUES OF INTEREST
@@ -319,17 +335,15 @@ serverProcessing <- function(input, output, clientData, session)
   ################################################################################
   # GENERATE THE DATA TABLE DISPLAY HERE
   ################################################################################
-  output$tableRdfData <- DT::renderDataTable(
-    DT::datatable
-    (
-      {data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))},
-      rownames = FALSE, 
-      filter='top', 
-      options = list(pageLength = 10, lengthMenu = c(12, 24, 36, 365))
-    ) %>%
-    formatStyle
-    ('Date', fontWeight = 'bold')
-  )
+  output$tableRdfData <- DT::renderDataTable({
+    validateSelectedModel()
+    validateSelectedSlot()
+    data <- data.frame(Date=index(rdfRawData()),coredata(rdfRawData()))
+    DT::datatable(data, 
+                  options = list(pageLength = 10, lengthMenu = c(12, 24, 36, 365)),
+                  filter = 'top',
+                  rownames = FALSE) 
+  })
   ################################################################################
   # DATA TABLE FUNCTIONS  
   ################################################################################
@@ -345,6 +359,7 @@ serverProcessing <- function(input, output, clientData, session)
   ################################################################################
   # GENERATE RDF TREE ON THE TREE TAB
   output$rdfTree <- renderTree({
+    validateSelectedModel()
     rdf <- rdfFile()
     metaRdf <- as.list(rdf$meta)
     runNames <- c()
