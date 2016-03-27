@@ -43,6 +43,7 @@ dbSidebar <- dashboardSidebar(
     menuItem("Home", tabName = "home", icon = icon("home")),
     menuItem("Graphs", tabName = "graphs", icon = icon("area-chart")),
     menuItem("Data", tabName = "data", icon = icon("table")),
+    menuItem("RDF Tree", tabName = "tree", icon = icon("tree")),
     menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/tjrocha/rdfModelOutputDashboard")
   )
 )
@@ -63,7 +64,7 @@ homeTab <- tabItem(
       "to select or you may type in partial names to filter the available slots in the list. ",
       "The drop-down box may take a few seconds to generate.",
       br(),  
-      "3. Once a model and a slot has been selected, you may now view charts and data in their respective ",
+      "3. Once a model and a slot has been selected, you may now view graphs and data in their respective ",
       "sections via the sidebar. Information about your selected RDF file and slot are shown by clicking ",
       "on the icons at the top right of the window. You may change your selections at any time. ",
       br(),br()
@@ -82,6 +83,8 @@ homeTab <- tabItem(
       tags$a(href="http://shiny.rstudio.com/", "shiny"),
       br(),
       tags$a(href="https://rstudio.github.io/shinydashboard", "shinydashboard"),
+      br(),
+      tags$a(href="https://github.com/trestletech/shinyTree", "shinyTree"),
       br(),
       tags$a(href="https://rstudio.github.io/DT", "DT"),
       br(),
@@ -103,11 +106,14 @@ graphTab <- tabItem(
   h2("Graphs"),
   "Notes:",
   br(),
-  "1. Charts shown below are based on the selected model and slot on the sidebar menu. ",
+  "1. Graphs shown below are based on the selected model and slot on the sidebar menu. ",
   br(),
   "2. Some plots have interactive elements while some do not. ",
   br(),br(),
   fluidRow(
+    ###################################
+    # RAW DATA GRAPH
+    ###################################
     dygraphOutput("plotRdfTS"),
     "Note: Click-and-drag to zoom in. Double-click to undo. You may click on the slider and then use your ",
     "keyboard left and right keys to cycle through each trace.",
@@ -115,6 +121,9 @@ graphTab <- tabItem(
   ),
   br(),br(),
   fluidRow(
+    ###################################
+    # ENVELOPE GRAPH BOX
+    ###################################
     box(
       dygraphOutput("plotRdfEnv"),
       br(),
@@ -125,6 +134,9 @@ graphTab <- tabItem(
                    selected = "monthly",inline = TRUE),
       sliderInput("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
     ), 
+    ###################################
+    # CDF GRAPH BOX
+    ###################################
     box(
       dygraphOutput("plotRdfCDF"),
       br(),
@@ -135,6 +147,9 @@ graphTab <- tabItem(
     ) 
   ),
   fluidRow(
+    ###################################
+    # THRESHOLD GRAPH BOX
+    ###################################
     box(
       dygraphOutput("plotRdfThreshCheck"),
       br(),
@@ -184,6 +199,29 @@ tableTab <- tabItem(
   )
 )
 ############################################################################################
+# DEFINE DASHBOARD BODY RDF TREE TAB
+############################################################################################
+treeTab <- tabItem(
+  tabName = "tree",
+  h2("RDF Tree"),
+  fluidRow(
+    box(
+      "Notes:",
+      br(),
+      "1. The tree view shown to the right is based on the selected model on the sidebar menu. ",
+      br(),
+      "2. Clicking on the chevron buttons next to a folder will expand/collapse the content view ",
+      "for that particular folder.",
+      br(),
+      "3. Clicking on DataObjects > Objects displays a quick view of the available slots for a ",
+      "given RDF without having to scroll through the slot list on the sidebar menu."
+    ),
+    box(
+      shinyTree("rdfTree")  
+    )
+  )
+)
+############################################################################################
 # POPULATE DASHBOARD
 ############################################################################################
 userInterface <- dashboardPage(
@@ -196,7 +234,8 @@ userInterface <- dashboardPage(
     tabItems(
       homeTab,
       graphTab,
-      tableTab
+      tableTab,
+      treeTab
     )
   )
 )

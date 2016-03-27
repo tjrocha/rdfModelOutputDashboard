@@ -339,4 +339,19 @@ serverProcessing <- function(input, output, clientData, session)
     content = function(filename) 
     {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
   )
+  ################################################################################
+  # RDF TREE FUNCTIONS  
+  ################################################################################
+  # GENERATE RDF TREE ON THE TREE TAB
+  output$rdfTree <- renderTree({
+    rdf <- rdfFile()
+    metaRdf <- as.list(rdf$meta)
+    runNames <- c()
+    for (ithRun in c(1:as.numeric(rdf$meta$number_of_runs))){
+      runNames <- c(runNames, paste('Run',ithRun,sep=""))
+    }
+    names(rdf$runs) <- runNames
+    runsRdf <- as.list(rdf$runs$Run1)
+    list(MetaData=metaRdf,DataObjects=runsRdf)
+  })
 }
