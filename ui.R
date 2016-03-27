@@ -73,6 +73,19 @@ homeTab <- tabItem(
     ),
     box(
       h2("Information"),
+      "These modeling results were generated based on hydrologic and operations projections for ",
+      "the Colorado River system reservoirs. The modeling tool used to generate these results is ",
+      tags$a(href="http://www.riverware.org/", "RiverWare"),
+      br(),br(),
+      "Results contained in the RDF files project future reservoir conditions and potential dam ",
+      "operations for the Colorado River system reservoirs given existing reservoir conditions, ",
+      "inflow forecasts and projections, inflow assumptions, and a variety of operational policies ",
+      "and guidelines. ",
+      br(),br(),
+      "All future conditions and operations used in the models to generate these results are only ",
+      "projections and are subject to change as actual hydrology, operations, and forecasts diverge ",
+      "from those used to produce specific model projections. ",
+      br(),br(),
       "This interface allows users to query, subset, view, and plot RiverWare RDF model outputs. ",
       "This tool is primarily meant to support U.S. Bureau of Reclamation modeling and analysis ",
       "efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation ",
@@ -96,7 +109,8 @@ homeTab <- tabItem(
       br(),
       tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
       br(),br(),
-      "The source code is also available on GitHub <https://github.com/tjrocha/rdfModelOutputDashboard>"
+      "The source code is also available on ",
+      tags$a(href="https://github.com/tjrocha/rdfModelOutputDashboard", "GitHub")
     )
   )
 )
