@@ -25,42 +25,32 @@ library(RWDataPlot)
 ############################################################################################
 # USER INTERFACE SECTION
 ############################################################################################
-userInterface <- dashboardPage(
-  dashboardHeader
-  (
-    title="", 
-    dropdownMenu
-    (
-      type = "notifications",
-      notificationItem
-      (
-        text = "Model disclaimer link",
-        icon("users")
-      ),
-      notificationItem
-      (
-        text = "Model information link",
-        icon("exclamation-triangle")
-      ),
-    dropdownMenuOutput("rdfInfoMenu"),
-    dropdownMenuOutput("slotInfoMenu")
-    )
-  ),
-  # DASHBOARD SIDEBAR
-  dashboardSidebar
-  (
-    # DEFINE SIDEBAR ITEMS
-    uiOutput("selectModelName"),
-    uiOutput("resettableFileInput"),
-    uiOutput("selectSlotName"),
-    sidebarMenu
-    (
-      menuItem("Home", tabName = "home", icon = icon("home")),
-      menuItem("Charts", tabName = "charts", icon = icon("area-chart")),
-      menuItem("Data", tabName = "data", icon = icon("table")),
+# POPULATE HEADER
+dbHeader <- dashboardHeader(
+  title="", 
+  dropdownMenuOutput("rdfInfoMenu"),
+  dropdownMenuOutput("slotInfoMenu")
+)
+dbHeader$children[[2]]$children <-  tags$a(href='http://www.usbr.gov/',tags$img(src='logo.png',height='38',width='200'))
+# POPULATE SIDEBAR
+dbSidebar <- dashboardSidebar(
+  # DEFINE SIDEBAR ITEMS
+  uiOutput("selectModelName"),
+  uiOutput("resettableFileInput"),
+  uiOutput("selectSlotName"),
+  sidebarMenu(
+    menuItem("Home", tabName = "home", icon = icon("home")),
+    menuItem("Charts", tabName = "charts", icon = icon("area-chart")),
+    menuItem("Data", tabName = "data", icon = icon("table")),
       menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/tjrocha/rdfModelOutputDashboard")
-    )
-  ),
+  )
+)
+# POPULATE USER INTERFACE & BODY
+userInterface <- dashboardPage(
+  # DASHBOARD HEADER
+  dbHeader,
+  # DASHBOARD SIDEBAR
+  dbSidebar,
   # DASHBOARD BODY
   dashboardBody
   (
@@ -71,9 +61,10 @@ userInterface <- dashboardPage(
       tabItem
       (
       tabName = "home",
+      h1("RiverWare RDF Output Explorer"),
       fluidRow
       (
-        h1("BETA TEST: RiverWare RDF Output Explorer"),
+        box(
         h2("Instructions"),
         "1. Select a model from the top-most drop down box or click on 'Choose File' to select and open ",
         "an RDF file. The current file size limit is 30MB while in the beta testing phase.",
@@ -84,8 +75,11 @@ userInterface <- dashboardPage(
         "The drop-down box may take a few seconds to generate.",
         br(),  
         "3. Once a model and a slot has been selected, you may now view charts and data in their respective ",
-        "sections via the sidebar. You may change your selections at any time. ",
-        br(),br(),
+        "sections via the sidebar. Information about your selected RDF file and slot are shown by clicking ",
+        "on the icons at the top right of the window. You may change your selections at any time. ",
+        br(),br()
+        ),
+        box(
         h2("Information"),
         "This interface allows users to query, subset, view, and plot RiverWare RDF model outputs. ",
         "This tool is primarily meant to support U.S. Bureau of Reclamation modeling and analysis ",
@@ -96,22 +90,23 @@ userInterface <- dashboardPage(
         br(),br(),
         "The dashboard uses the following R libraries below and is being developed in RStudio. ",
         br(),
-        "shiny <http://shiny.rstudio.com/>",
+        tags$a(href="http://shiny.rstudio.com/", "shiny"),
         br(),
-        "shinydashboard <https://rstudio.github.io/shinydashboard/>",
+        tags$a(href="https://rstudio.github.io/shinydashboard", "shinydashboard"),
         br(),
-        "DT <https://rstudio.github.io/DT/>",
+        tags$a(href="https://rstudio.github.io/DT", "DT"),
         br(),
-        "xts <https://cran.r-project.org/web/packages/xts/index.html>",
+        tags$a(href="https://cran.r-project.org/web/packages/xts/index.html", "xts"),
         br(),
-        "zoo <https://cran.r-project.org/web/packages/zoo/index.html>",
+        tags$a(href="https://cran.r-project.org/web/packages/zoo/index.html", "zoo"),
         br(),
-        "RWDataPlot <https://github.com/rabutler/RWDataPlot>",
+        tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
         br(),br(),
         "The source code is also available on GitHub <https://github.com/tjrocha/rdfModelOutputDashboard>"
+        )
       )
     ),
-      tabItem
+    tabItem
     (
       tabName = "charts",
       h2("Charts and Graphs"),

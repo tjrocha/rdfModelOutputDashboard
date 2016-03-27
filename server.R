@@ -67,7 +67,7 @@ serverProcessing <- function(input, output, clientData, session)
     if (is.null(input$rdfFileIn)){
       selectInput(
         "selectedModel", "1. Select a Model", 
-        c("---", "24MS (24-Month Study)", 
+        c(Choose="", "24MS (24-Month Study)", 
           "MTOM (Mid-Term Operations Model)", 
           "CRSS (Colorado River Simulation System)")
       )
@@ -83,6 +83,7 @@ serverProcessing <- function(input, output, clientData, session)
   })
   # GENERATE THE SLOT SELECTION DROP DOWN LIST
   output$selectSlotName <- renderUI({ 
+    validate(need(selectedModelName() != "", ''))
     selectInput(
       "slotName", "2. Select a slot", c(Choose="",listSlots(rdfFile())))
   })
@@ -110,9 +111,9 @@ serverProcessing <- function(input, output, clientData, session)
   ################################################################################
   # GET SELECTED RDF INFORMATION
   getRdfInfo <- reactive({
-    rdfInfo <- data.frame(matrix(NA, nrow = 8, ncol = 2))
+    rdfInfo <- data.frame(matrix(NA, nrow = 7, ncol = 2))
     labels <- c(
-      "Start", "End", "Interval", "#Runs", "Run Name", "Run By","Run Date","Run Rules"
+      "Start", "End", "Interval", "#Runs", "Run Name", "Run By","Run Date"
     )
     info <- c(
       rdfFile()$runs[[1]]$start, # RW START DATE
@@ -121,54 +122,50 @@ serverProcessing <- function(input, output, clientData, session)
       rdfFile()$meta$number_of_runs, # N-RUNS
       rdfFile()$meta$name, # MRM RUN NAME
       rdfFile()$meta$owner, # USER NAME
-      rdfFile()$meta$create_date, # MODEL RUN DATE
-      rdfFile()$runs[[1]]$rule_set # SELECTED RULES
+      rdfFile()$meta$create_date # MODEL RUN DATE
     )
     rdfInfo[,1] <- labels
     rdfInfo[,2] <- info
     rdfInfo <- data.frame(rdfInfo)
-    names(rdfInfo) <- c("from","message")
+    names(rdfInfo) <- c("item","message")
     rdfInfo
   })
   # GET SELECTED SLOT INFORMATION
   getSlotInfo <- reactive({
+    rdfFile <- rdfFile()
     slotInfo <- data.frame(matrix(NA, nrow = 5, ncol = 2))
     labels <- c(
       "Units", "Scale", "Object", "Object Name", "Object Slot"
     )
     info <- c(
-      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$units",sep=""))),
-      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$scale",sep=""))),
-      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_type",sep=""))),
-      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_name",sep=""))),
-      eval(parse(text=paste("rawRDF$runs[[1]]$objects$'",selectedRDFSlot(),"'$slot_name",sep="")))
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$units",sep=""))),
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$scale",sep=""))),
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_type",sep=""))),
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_name",sep=""))),
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$slot_name",sep="")))
     )
     slotInfo[,1] <- labels
     slotInfo[,2] <- info
     slotInfo <- data.frame(slotInfo)
-    names(slotInfo) <- c("from","message")
+    names(slotInfo) <- c("item","message")
     slotInfo
   })
   output$rdfInfoMenu <- renderMenu({
+    validate(need(selectedModelName() != "", ''))
     # Code to generate each of the messageItems here, in a list. This assumesslotInfoMenu
-    # that messageData is a data frame with two columns, 'from' and 'message'.
+    # that messageData is a data frame with two columns, 'item' and 'message'.
     msgs <- apply(getRdfInfo(), 1, function(row) {
-      messageItem(from = row[["from"]], message = row[["message"]])
+      messageItem(from = row[["item"]], message = row[["message"]], icon("angle-right"))
     })
-    
-    # This is equivalent to calling:
-    #   dropdownMenu(type="messages", msgs[[1]], msgs[[2]], ...)
     dropdownMenu(type = "messages", .list = msgs)
   })
   output$slotInfoMenu <- renderMenu({
+    validate(need(selectedRDFSlot() != "", ''))
     # Code to generate each of the messageItems here, in a list. This assumes
-    # that messageData is a data frame with two columns, 'from' and 'message'.
+    # that messageData is a data frame with two columns, 'item' and 'message'.
     msgs <- apply(getSlotInfo(), 1, function(row) {
-      messageItem(from = row[["from"]], message = row[["message"]])
+      messageItem(from = row[["item"]], message = row[["message"]], icon("angle-right"))
     })
-    
-    # This is equivalent to calling:
-    #   dropdownMenu(type="messages", msgs[[1]], msgs[[2]], ...)
     dropdownMenu(type = "messages", .list = msgs)
   })
   ################################################################################
