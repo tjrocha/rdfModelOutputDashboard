@@ -17,6 +17,7 @@
 rm(list=ls())
 library(shiny)
 library(shinydashboard)
+library(shinyTree)
 library(dygraphs)
 library(DT)
 library(xts)
