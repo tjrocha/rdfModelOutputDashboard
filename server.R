@@ -38,7 +38,7 @@ serverProcessing <- function(input, output, clientData, session){
     modelName <- strsplit(modelNameString," ")[[1]][1]
     modelName
   })
-  # GENERATE DATA FROM RDF HERE, THIS IS USED BY ALL THE PROCESSES BELOW
+  # READ THE RDF FILE
   rdfFile <- reactive({
     rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
     if (!is.null(input$rdfFileIn) && selectedModelName() == input$rdfFileIn$name){
@@ -47,6 +47,7 @@ serverProcessing <- function(input, output, clientData, session){
     rawRDF <- read.rdf(rdfFileName)
     rawRDF
   })
+  # READ THE SLOT DATA FROM RDF
   rdfRawData <- reactive({
     rawRDF <- rdfFile()
     tArray <- rawRDF$runs[[1]]$times
@@ -178,7 +179,7 @@ serverProcessing <- function(input, output, clientData, session){
     dropdownMenu(type = "messages", .list = msgs)
   })
 ################################################################################
-# GENERATE THE CHARTS HERE
+# GENERATE THE GRAPHS HERE
 ################################################################################
   # TRACES
   output$plotRdfTS <- renderDygraph({ 
