@@ -23,6 +23,7 @@ library(DT)
 library(xts)
 library(zoo)
 library(RWDataPlot)
+library(htmlwidgets)
 ############################################################################################
 # SERVER SIDE FUNCTIONS, METHODS, AND PROCESSING
 ############################################################################################
@@ -371,4 +372,26 @@ serverProcessing <- function(input, output, clientData, session){
     runsRdf <- as.list(rdf$runs$Run1)
     list(MetaData=metaRdf,DataObjects=runsRdf)
   })
+  ################################################################################
+  # REPORT GENERATOR FUNCTIONS
+  ################################################################################
+  # GENERATE BASIC REPORT PACKAGE
+  output$saveReport<- downloadHandler(
+    filename  = function()
+    {paste(Sys.time(),selectedRDFSlot(), sep='')},
+    content = function(filename){
+      # BUILD RAW TS GRAPH ON SERVER
+      a <- dygraph(rdfRawData(), main = "Raw Time-Series Plot") %>%
+        dyLegend(show = "never") %>%
+        dyOptions(drawGrid = TRUE, colors = "black",strokeWidth = 0.5, strokePattern = "dashed", fillAlpha = .25)
+      # SAVE RAW TS GRAPH ON SERVER
+      htmlwidgets::saveWidget(a, "TS.html")
+      # SAVE DATA TABLE ON SERVER
+      write.csv(data.frame(Date<-index(rdfRawData()),coredata(rdfRawData())),
+                "Data.csv",row.names = FALSE)
+      # TRY TO SEND ZIP FILE... NOT WORKING
+      zip(zipfile=filename,files = c("TS.html","Data.csv"))
+    },
+    contentType = "application/zip"
+  )
 }

@@ -250,7 +250,8 @@ reportsTab <- tabItem(
   br(),br(),
   fluidRow(
     box(
-      "BASIC REPORT GENERATION OPTIONS GOES HERE..."
+      "BASIC REPORT GENERATION OPTIONS GOES HERE...",
+      downloadButton('saveReport', 'Generate & Download Graphs and Data')
     ),
     box(
       "PRECONFIGURED REPORT GENERATION OPTIONS GOES HERE... THIS SHOULD BE AUTOMATICALLY HIDDEN ",
