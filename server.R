@@ -192,9 +192,12 @@ serverProcessing <- function(input, output, clientData, session){
     else {
       s1 = paste("V", sliderTraceSelected() + 1, sep="")
     }
+    tsDygraph() %>%
+      dySeries(s1, label = "Actual", strokeWidth = 3, fillGraph = TRUE)
+  })
+  tsDygraph <- reactive({
     dygraph(rdfRawData(), main = "Raw Time-Series Plot") %>%
       dySeries(attr(rdfRawData,"dimnames")[1]) %>%
-      dySeries(s1, label = "Actual", strokeWidth = 3, fillGraph = TRUE) %>%
       dyLegend(show = "never") %>%
       dyOptions(drawGrid = TRUE, colors = "black",strokeWidth = 0.2, strokePattern = "dashed", fillAlpha = .25)
   })
@@ -202,6 +205,9 @@ serverProcessing <- function(input, output, clientData, session){
   output$plotRdfEnv <- renderDygraph({
     validateSelectedModel()
     validateSelectedSlot()
+    envDygraph()
+  })
+  envDygraph <- reactive({
     s1 = paste(envelopeRangeSelected()[1]*100,"%",sep="")
     s2 = paste(envelopeRangeSelected()[5]*100,"%",sep="")
     data <- envelopeAggSelected()
@@ -228,6 +234,9 @@ serverProcessing <- function(input, output, clientData, session){
   output$plotRdfCDF <- renderDygraph({
     validateSelectedModel()
     validateSelectedSlot()
+    excDygraph()
+  })
+  excDygraph <- reactive({
     s1 = paste("X",exceedanceRangeSelected()[1]*100,".",sep="")
     s2 = paste("X",exceedanceRangeSelected()[5]*100,".",sep="")
     data <- pctExcChartData()
@@ -378,19 +387,24 @@ serverProcessing <- function(input, output, clientData, session){
   # GENERATE BASIC REPORT PACKAGE
   output$saveReport<- downloadHandler(
     filename  = function()
-    {paste(Sys.time(),selectedRDFSlot(), sep='')},
+    {paste(format(Sys.time(), "%d%b%Y%I%M%p"),selectedRDFSlot(),".zip", sep='')},
     content = function(filename){
-      # BUILD RAW TS GRAPH ON SERVER
-      a <- dygraph(rdfRawData(), main = "Raw Time-Series Plot") %>%
-        dyLegend(show = "never") %>%
-        dyOptions(drawGrid = TRUE, colors = "black",strokeWidth = 0.5, strokePattern = "dashed", fillAlpha = .25)
-      # SAVE RAW TS GRAPH ON SERVER
-      htmlwidgets::saveWidget(a, "TS.html")
+      tempDir <- paste(getwd(),"/tempReports/",sep="")
+      # SAVE GRAPHS ON SERVER
+      htmlwidgets::saveWidget(tsDygraph(), paste(tempDir, "timeSeriesGraph.html", sep=""))
+      htmlwidgets::saveWidget(envDygraph(), paste(tempDir, "envelopeGraph.html", sep=""))
+      htmlwidgets::saveWidget(excDygraph(), paste(tempDir, "pctExceedanceGraph.html", sep=""))
       # SAVE DATA TABLE ON SERVER
       write.csv(data.frame(Date<-index(rdfRawData()),coredata(rdfRawData())),
-                "Data.csv",row.names = FALSE)
-      # TRY TO SEND ZIP FILE... NOT WORKING
-      zip(zipfile=filename,files = c("TS.html","Data.csv"))
+                paste(tempDir, "data.csv", sep=""),row.names = FALSE)
+      # BUILD ZIP FILE... NOT WORKING
+      zip(zipfile=filename,files = c(
+        paste(tempDir, "timeSeriesGraph.html", sep=""),
+        paste(tempDir, "envelopeGraph.html", sep=""),
+        paste(tempDir, "pctExceedanceGraph.html", sep=""),
+        paste(tempDir, "data.csv", sep="")
+        )
+      )
     },
     contentType = "application/zip"
   )
