@@ -76,6 +76,7 @@ homeTab <- tabItem(
       "These modeling results were generated based on hydrologic and operations projections for ",
       "the Colorado River system reservoirs. The modeling tool used to generate these results is ",
       tags$a(href="http://www.riverware.org/", "RiverWare"),
+      icon("registered"),
       br(),br(),
       "Results contained in the RDF files project future reservoir conditions and potential dam ",
       "operations for the Colorado River system reservoirs given existing reservoir conditions, ",

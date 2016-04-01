@@ -386,8 +386,10 @@ serverProcessing <- function(input, output, clientData, session){
   ################################################################################
   # GENERATE BASIC REPORT PACKAGE
   output$saveReport<- downloadHandler(
-    filename  = function()
-    {paste(format(Sys.time(), "%d%b%Y%I%M%p"),selectedRDFSlot(),".zip", sep='')},
+    filename  = function(){
+      file.remove(dir(paste(getwd(),"/tempReports/",sep=""), pattern = "(.*?)", full.names = TRUE))
+      paste(format(Sys.time(), "%d%b%Y%I%M%p"),selectedRDFSlot(),".zip", sep='')
+    },
     content = function(filename){
       tempDir <- paste(getwd(),"/tempReports/",sep="")
       # SAVE GRAPHS ON SERVER
@@ -398,13 +400,7 @@ serverProcessing <- function(input, output, clientData, session){
       write.csv(data.frame(Date<-index(rdfRawData()),coredata(rdfRawData())),
                 paste(tempDir, "data.csv", sep=""),row.names = FALSE)
       # BUILD ZIP FILE... NOT WORKING
-      zip(zipfile=filename,files = c(
-        paste(tempDir, "timeSeriesGraph.html", sep=""),
-        paste(tempDir, "envelopeGraph.html", sep=""),
-        paste(tempDir, "pctExceedanceGraph.html", sep=""),
-        paste(tempDir, "data.csv", sep="")
-        )
-      )
+      zip(zipfile=filename,files = "tempReports")
     },
     contentType = "application/zip"
   )
