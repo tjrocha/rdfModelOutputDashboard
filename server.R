@@ -166,6 +166,21 @@ serverProcessing <- function(input, output, clientData, session){
     names(slotInfo) <- c("item","message")
     slotInfo
   })
+  getChartLabel <- reactive({
+    rdfFile <- rdfFile()
+    label <- paste(
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$object_name",sep=""))),
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$slot_name",sep=""))),
+      sep = " "
+    )
+    label <- paste(label, " (",
+      if (eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$scale",sep=""))) != 1)
+        {eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$scale",sep="")))},
+      eval(parse(text=paste("rdfFile$runs[[1]]$objects$'",selectedRDFSlot(),"'$units",sep=""))),
+      ")", sep=""
+    )
+    label
+  })
   output$rdfInfoMenu <- renderMenu({
     validate(need(selectedModelName() != "", ''))
     # Code to generate each of the messageItems here, in a list. This assumesslotInfoMenu
@@ -204,6 +219,7 @@ serverProcessing <- function(input, output, clientData, session){
     dygraph(rdfRawData(), main = "Raw Time-Series Plot") %>%
       dySeries(attr(rdfRawData,"dimnames")[1]) %>%
       dyLegend(show = "never") %>%
+      dyAxis(name="y", label=getChartLabel()) %>%
       dyOptions(drawGrid = TRUE, colors = "black",strokeWidth = 0.2, strokePattern = "dashed", fillAlpha = .25)
   })
   # ENVELOPE
@@ -221,6 +237,7 @@ serverProcessing <- function(input, output, clientData, session){
       dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
       dySeries(c("25%", "50%", "75%"), label = "Median", strokeWidth = 2, color = "black") %>%
       dyOptions(drawGrid = TRUE) %>%
+      dyAxis(name="y", label=getChartLabel()) %>%
       dyLegend(show = "auto", width = 300)
   })
   # ENVELOPE LOGIC AND OPTIONS
@@ -251,6 +268,7 @@ serverProcessing <- function(input, output, clientData, session){
       dySeries(c("X25.", "X50.", "X75."), label = "Median", strokeWidth = 2, color = "black") %>%
       dyOptions(drawGrid = TRUE)  %>%
       dyLegend(show = "auto", width = 300) %>%
+      dyAxis(name="y", label=getChartLabel()) %>%
       dyAxis(name="x" , valueFormatter = "function(d){ date = new Date(d); return (date.getFullYear()-1000)/10; }", 
              axisLabelFormatter = "function(d){ return Math.round((d.getFullYear()-1000)/10) }" )
   })
