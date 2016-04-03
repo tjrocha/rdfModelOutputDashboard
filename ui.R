@@ -46,7 +46,7 @@ dbSidebar <- dashboardSidebar(
     menuItem("Data", tabName = "data", icon = icon("table")),
     menuItem("RDF Tree", tabName = "tree", icon = icon("tree")),
     menuItem("Reports", tabName = "reports", icon = icon("cogs")),
-    menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/tjrocha/rdfModelOutputDashboard")
+    menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/usbr/RiverWareRdfOutputExplorer")
   )
 )
 ############################################################################################
@@ -111,7 +111,7 @@ homeTab <- tabItem(
       tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
       br(),br(),
       "The source code is also available on ",
-      tags$a(href="https://github.com/tjrocha/rdfModelOutputDashboard", "GitHub")
+      tags$a(href="https://github.com/usbr/RiverWareRdfOutputExplorer", "GitHub")
     )
   )
 )
