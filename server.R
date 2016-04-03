@@ -61,6 +61,11 @@ serverProcessing <- function(input, output, clientData, session){
     # 6. Storage.mode() - convert char values in the XTS matrix to numeric
     rdf <- as.xts(read.zoo(data.frame(cbind(tArray,rdfSlotToMatrix(rawRDF, selectedRDFSlot())))),na.rm=TRUE)
     storage.mode(rdf) <- "numeric"
+    runNames <- c()
+    for (ithRun in c(1:as.numeric(rawRDF$meta$number_of_runs))){
+      runNames <- c(runNames, paste('Trace',ithRun,sep=""))
+    }
+    names(rdf) <- runNames
     rdf
   })
   # GENERATE THE MODEL SELECTION DROP DOWN LIST
@@ -187,10 +192,10 @@ serverProcessing <- function(input, output, clientData, session){
     validateSelectedModel()
     validateSelectedSlot()
     if (rdfFile()$meta$number_of_runs == 1){
-      s1 = "V1"
+      s1 = "Trace1"
     }
     else {
-      s1 = paste("V", sliderTraceSelected() + 1, sep="")
+      s1 = paste("Trace", sliderTraceSelected() + 1, sep="")
     }
     tsDygraph() %>%
       dySeries(s1, label = "Actual", strokeWidth = 3, fillGraph = TRUE)
