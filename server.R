@@ -408,6 +408,11 @@ serverProcessing <- function(input, output, clientData, session){
   # REPORT GENERATOR FUNCTIONS
   ################################################################################
   # GENERATE BASIC REPORT PACKAGE
+  output$reportDownloadButton <- renderUI({
+    validateSelectedModel()
+    validateSelectedSlot()
+    downloadButton('saveReport', 'Generate & Download Graphs and Data')
+  })
   output$saveReport<- downloadHandler(
     filename  = function(){
       file.remove(dir(paste(getwd(),"/tempReports/",sep=""), pattern = "(.*?)", full.names = TRUE))
@@ -422,7 +427,7 @@ serverProcessing <- function(input, output, clientData, session){
       # SAVE DATA TABLE ON SERVER
       write.csv(data.frame(Date<-index(rdfRawData()),coredata(rdfRawData())),
                 paste(tempDir, "data.csv", sep=""),row.names = FALSE)
-      # BUILD ZIP FILE... NOT WORKING
+      # BUILD ZIP FILE
       zip(zipfile=filename,files = "tempReports")
     },
     contentType = "application/zip"
