@@ -261,18 +261,18 @@ reportsTab <- tabItem(
       uiOutput("reportDownloadButton")
     )
   ),
-  fluidRow(
-    box(
-      "NOTE: This section generates the USBR UC & LC 5-year probability table based on whether ",
-      "the loaded RDF has the Mead.Pool Elevation, Powell.Pool Elevation and Powell.Outflow ",
-      "slots. THIS IS CURRENTLY BEING PROGRAMMED...",
+#  fluidRow(
+#    box(
+#      "NOTE: This section generates the USBR UC & LC 5-year probability table based on whether ",
+#      "the loaded RDF has the Mead.Pool Elevation, Powell.Pool Elevation and Powell.Outflow ",
+#      "slots. THIS IS CURRENTLY BEING PROGRAMMED...",
       br(),
       div(
         style = 'overflow-x: scroll',
         DT::dataTableOutput("tableProbabilityData")
       )
-    )
-  )
+#    )
+#  )
 )
 ############################################################################################
 # POPULATE DASHBOARD

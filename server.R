@@ -24,6 +24,7 @@ library(xts)
 library(zoo)
 library(RWDataPlot)
 library(htmlwidgets)
+source('global.R')
 ############################################################################################
 # SERVER SIDE FUNCTIONS, METHODS, AND PROCESSING
 ############################################################################################
@@ -446,16 +447,54 @@ serverProcessing <- function(input, output, clientData, session){
               'and Powell.Outflow...', sep='')
       )
     )
+    # Define 5-year range
     t1 <- as.numeric(format(as.Date(rdfFile()$runs[[1]]$start), "%Y")) # RW START DATE
-    t2 <- t1 + 5
+    t2 <- t1 + 4
     tRange <- paste(t1,"/",t2,sep="")
-    meadZ <- rdfSlotToXTS(rdfFile(), 'Mead.Pool Elevation')[tRange]
-    powellZ <- rdfSlotToXTS(rdfFile(), 'Powell.Pool Elevation')[tRange]
+    # Get data to process
+    meadZ <- getTraceMonthVal(rdfSlotToXTS(rdfFile(), 'Mead.Pool Elevation')[tRange], 12)
+    powellZ <- getTraceMonthVal(rdfSlotToXTS(rdfFile(), 'Powell.Pool Elevation')[tRange], 12)
     powellQ <- rdfSlotToXTS(rdfFile(), 'Powell.Outflow')[tRange]
-    data <- meadZ
-    DT::datatable(data, 
-                  options = list(pageLength = 10, lengthMenu = c(12, 24, 36, 365)),
-                  filter = 'top',
-                  rownames = FALSE) 
+    # Get Mead elevation tier percentages
+    srplus <- getArrayThresholdExceedance(meadZ,1220,'LT')
+    icsSrp <- getArrayThresholdExceedance(meadZ,1145,'LT')
+    short1 <- getArrayThresholdExceedance(meadZ,1075,'LT')
+    short2 <- getArrayThresholdExceedance(meadZ,1050,'LT')
+    short3 <- getArrayThresholdExceedance(meadZ,1025,'LT')
+    srplus <- srplus - icsSrp
+    icsSrp <- icsSrp - short1
+    short1 <- short1 - short2
+    short2 <- short2 - short3
+    # Get Powell elevation tier percentages
+    eqlBal <- getArrayThresholdExceedance(powellZ,3700,'LT')
+    uprBal <- getArrayThresholdExceedance(powellZ,3646,'LT')
+    midBal <- getArrayThresholdExceedance(powellZ,3575,'LT')
+    lowBal <- getArrayThresholdExceedance(powellZ,3525,'LT')
+    eqlBal <- eqlBal - uprBal
+    uprBal <- uprBal - midBal
+    midBal <- midBal - lowBal
+    # Get Powell flow volume tier percentages
+    powSum <- getTraceSum(powellQ, 'WY')
+    powLT823 <- getArrayThresholdExceedance(powSum,8230000,'LT')
+    powGT823 <- getArrayThresholdExceedance(powSum,8230000,'GT')
+    powGT9 <- getArrayThresholdExceedance(powSum,9000000,'GT')
+    #data <- merge(srplus,icsSrp,short1,short2,short3)
+    #data <- merge(eqlBal,uprBal,midBal,lowBal)
+    #data <- merge(powLT823, powGT823,powGT9)
+    data <- round(merge(srplus,icsSrp,short1,short2,short3,eqlBal,uprBal,midBal,lowBal), digits=0)
+    data <- data.frame(Date=index(data),coredata(data))
+    DT::datatable(data, rownames = FALSE,filter = "none", 
+                  colnames = c(
+                    'Lake Mead Surplus', 'Lake Mead Normal/ICS Surplus', 'Lake Mead Tier 1 Shortage', 
+                    'Lake Mead Tier 2 Shortage', 'Lake Mead Tier 3 Shortage', 
+                    'Lake Powell Equalization Balancing', 'Lake Powell Upper Elevation Balancing', 
+                    'Lake Powell Mid Elevation Balancing', 'Lake Powell Lower Elevation Balancing'
+                  ),
+                  caption = paste('This table shows the percentage of traces per year that meet certain ',
+                                  'thresholds as defined in the 2007 Interim Guidelines. This table is ',
+                                  'commonly referred to as the 5-year table in the USBR UC and LC regions.',
+                                  sep="")
+                  
+    ) 
   })
 }
