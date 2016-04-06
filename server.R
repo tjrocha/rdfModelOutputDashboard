@@ -183,7 +183,7 @@ serverProcessing <- function(input, output, clientData, session){
   })
   output$rdfInfoMenu <- renderMenu({
     validate(need(selectedModelName() != "", ''))
-    # Code to generate each of the messageItems here, in a list. This assumesslotInfoMenu
+    # Code to generate each of the messageItems here, in a list. This assumes
     # that messageData is a data frame with two columns, 'item' and 'message'.
     msgs <- apply(getRdfInfo(), 1, function(row) {
       messageItem(from = row[["item"]], message = row[["message"]], icon("angle-right"))
@@ -432,4 +432,30 @@ serverProcessing <- function(input, output, clientData, session){
     },
     contentType = "application/zip"
   )
+  # GENERATE UC & LC PROBABILITY TABLE
+  output$tableProbabilityData <- DT::renderDataTable({
+    validateSelectedModel()
+    availableSlots <- listSlots(rdfFile())
+    requireddSlots<-c("Mead.Pool Elevation","Powell.Pool Elevation","Powell.Outflow")
+    validate(
+      need(
+        all(
+          requireddSlots %in% availableSlots), 
+        paste('Loaded RDF does not have the required slots to generate the UC & LC 5-year ',
+              'probability table. Need Mead.Pool Elevation, Powell.Pool Elevation ',
+              'and Powell.Outflow...', sep='')
+      )
+    )
+    t1 <- as.numeric(format(as.Date(rdfFile()$runs[[1]]$start), "%Y")) # RW START DATE
+    t2 <- t1 + 5
+    tRange <- paste(t1,"/",t2,sep="")
+    meadZ <- rdfSlotToXTS(rdfFile(), 'Mead.Pool Elevation')[tRange]
+    powellZ <- rdfSlotToXTS(rdfFile(), 'Powell.Pool Elevation')[tRange]
+    powellQ <- rdfSlotToXTS(rdfFile(), 'Powell.Outflow')[tRange]
+    data <- meadZ
+    DT::datatable(data, 
+                  options = list(pageLength = 10, lengthMenu = c(12, 24, 36, 365)),
+                  filter = 'top',
+                  rownames = FALSE) 
+  })
 }
