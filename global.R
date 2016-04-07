@@ -199,6 +199,8 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
     boolArray <- rdfXTS > valueIn  
   else if (comparison == "LT")
     boolArray <- rdfXTS < valueIn 
+  else if (comparison == "EQ")
+    boolArray <- rdfXTS == valueIn
   else
     stop(paste(comparison, " is not a valid input. Use GT for greater than or LT for less than", sep=""))
   # GET A COUNT OF TRUE VALUES AT EACH COLUMN FOR EACH ROW

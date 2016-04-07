@@ -113,7 +113,7 @@ serverProcessing <- function(input, output, clientData, session){
   })
   # GET THE SELECTED TRACE
   sliderTraceSelected <- reactive({
-    input$selectedTrace
+    input$selectedTrace - 1
   })
   # VALIDATE SELECTED MODEL
   validateSelectedModel <- reactive({
@@ -475,17 +475,17 @@ serverProcessing <- function(input, output, clientData, session){
     midBal <- midBal - lowBal
     # Get Powell flow volume tier percentages
     powSum <- getTraceSum(powellQ, 'WY')
-    powGT900 <- getArrayThresholdExceedance(powSum,999999999,'LT')
-    powAT823 <- getArrayThresholdExceedance(powSum,8230001,'LT')
+    powGT823 <- getArrayThresholdExceedance(powSum,8230000,'GT')
+    powAT823 <- getArrayThresholdExceedance(powSum,8230000,'EQ')
     powLT823 <- getArrayThresholdExceedance(powSum,8230000,'LT')
-    powAT748 <- getArrayThresholdExceedance(powSum,7480000,'LT')
-    powGT900 <- powGT900 - powAT823
-    powAT823 <- powAT823 - powLT823
-    powLT823 <- powLT823 - powAT748
+    #powAT748 <- getArrayThresholdExceedance(powSum,7480000,'EQ')
+    #powGT900 <- powGT900 - powAT823
+    #powAT823 <- powAT823 - powLT823
+    #powLT823 <- powLT823 - powAT748
     #data <- merge(srplus,icsSrp,short1,short2,short3)
     #data <- merge(eqlBal,uprBal,midBal,lowBal)
     #data <- merge(powLT823, powGT823,powGT9)
-    qData <- merge(powGT900,powAT823,powLT823,powAT748)
+    qData <- merge(powGT823,powAT823,powLT823)
     zData <- merge(srplus,icsSrp,short1,short2,short3,eqlBal,uprBal,midBal,lowBal)
     index(qData) <- index(zData)
     data <- round(merge(zData,qData), digits=0)
@@ -496,8 +496,8 @@ serverProcessing <- function(input, output, clientData, session){
                     'Lake Mead Tier 2 Shortage', 'Lake Mead Tier 3 Shortage', 
                     'Lake Powell Equalization Balancing', 'Lake Powell Upper Elevation Balancing', 
                     'Lake Powell Mid Elevation Balancing', 'Lake Powell Lower Elevation Balancing',
-                    'Lake Powell > 9.00 MAF Release','Lake Powell = 8.23 MAF Release',
-                    'Lake Powell < 8.23 MAF Release','Lake Powell = 7.48 MAF Release'
+                    'Lake Powell > 8.23 MAF Release','Lake Powell = 8.23 MAF Release',
+                    'Lake Powell < 8.23 MAF Release'
                   ),
                   caption = paste('This table shows the percentage of traces per year that meet certain ',
                                   'thresholds as defined in the 2007 Interim Guidelines. This table is ',
