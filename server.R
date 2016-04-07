@@ -461,6 +461,7 @@ serverProcessing <- function(input, output, clientData, session){
     short1 <- getArrayThresholdExceedance(meadZ,1075,'LT')
     short2 <- getArrayThresholdExceedance(meadZ,1050,'LT')
     short3 <- getArrayThresholdExceedance(meadZ,1025,'LT')
+    allSht <- short1
     srplus <- srplus - icsSrp
     icsSrp <- icsSrp - short1
     short1 <- short1 - short2
@@ -478,31 +479,28 @@ serverProcessing <- function(input, output, clientData, session){
     powGT823 <- getArrayThresholdExceedance(powSum,8230000,'GT')
     powAT823 <- getArrayThresholdExceedance(powSum,8230000,'EQ')
     powLT823 <- getArrayThresholdExceedance(powSum,8230000,'LT')
-    #powAT748 <- getArrayThresholdExceedance(powSum,7480000,'EQ')
-    #powGT900 <- powGT900 - powAT823
-    #powAT823 <- powAT823 - powLT823
-    #powLT823 <- powLT823 - powAT748
-    #data <- merge(srplus,icsSrp,short1,short2,short3)
-    #data <- merge(eqlBal,uprBal,midBal,lowBal)
-    #data <- merge(powLT823, powGT823,powGT9)
     qData <- merge(powGT823,powAT823,powLT823)
-    zData <- merge(srplus,icsSrp,short1,short2,short3,eqlBal,uprBal,midBal,lowBal)
+    zData <- merge(srplus,icsSrp,allSht,short1,short2,short3,eqlBal,uprBal,midBal,lowBal)
     index(qData) <- index(zData)
     data <- round(merge(zData,qData), digits=0)
-    data <- data.frame(Date=index(data),coredata(data))
-    DT::datatable(data, rownames = FALSE,filter = "none", 
-                  colnames = c(
-                    'Lake Mead Surplus', 'Lake Mead Normal/ICS Surplus', 'Lake Mead Tier 1 Shortage', 
-                    'Lake Mead Tier 2 Shortage', 'Lake Mead Tier 3 Shortage', 
+    data <- data.frame(coredata(data))
+    DT::datatable(t(data), filter = "none",  
+                  rownames = c(
+                    'Lake Mead Surplus', 'Lake Mead Normal/ICS Surplus', 'Lake Mead Any Shortage',
+                    'Lake Mead Tier 1 Shortage', 'Lake Mead Tier 2 Shortage', 'Lake Mead Tier 3 Shortage', 
                     'Lake Powell Equalization Balancing', 'Lake Powell Upper Elevation Balancing', 
                     'Lake Powell Mid Elevation Balancing', 'Lake Powell Lower Elevation Balancing',
                     'Lake Powell > 8.23 MAF Release','Lake Powell = 8.23 MAF Release',
                     'Lake Powell < 8.23 MAF Release'
                   ),
+                  colnames = c(
+                    t1, t1+1, t1+2, t1+3, t1+4
+                  ),
                   caption = paste('This table shows the percentage of traces per year that meet certain ',
                                   'thresholds as defined in the 2007 Interim Guidelines. This table is ',
                                   'commonly referred to as the 5-year table in the USBR UC and LC regions.',
-                                  sep="")
+                                  sep=""),
+                  options = list(pageLength = 15)
                   
     ) 
   })
