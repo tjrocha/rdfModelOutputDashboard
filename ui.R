@@ -56,6 +56,15 @@ homeTab <- tabItem(
   tabName = "home",
   h1("RiverWare RDF Output Explorer"),
   fluidRow(
+    tags$em(
+    "BETA VERSION STATEMENT: This data exploration tool is intended for use by U.S. Bureau of Reclamation ",
+    "(Reclamation) modelers, Reclamation's stakeholders, academia, and the public. The data presented here ",
+    "are outputs from a water resources model. You may request a subset of the data by contacting us directly ",
+    "via email. Please send questions, comments, suggestions for improvements, and error reports via email to ",
+    "Jon Rocha (jrocha@usbr.gov). The current web location for this tool is temporary and it will be hosted on ",
+    "a Reclamation server as soon as a suitable one can be located."
+    ),
+    br(),br(),
     box(
       h2("Instructions"),
       "1. Select a model from the top-most drop down box or click on 'Choose File' to select and open ",
@@ -115,8 +124,9 @@ homeTab <- tabItem(
       ", ",
       tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
       br(),br(),
-      "The source code is also available on ",
-      tags$a(href="https://github.com/usbr/RiverWareRdfOutputExplorer", "GitHub")
+      "The source code is available on ",
+      tags$a(href="https://github.com/usbr/RiverWareRdfOutputExplorer", "GitHub. "),
+      "Contact the developer, Jon Rocha, via e-mail at jrocha@usbr.gov for questions or feedback."
     )
   )
 )
@@ -257,8 +267,8 @@ reportsTab <- tabItem(
   fluidRow(
     box(
       "Using the selected RDF and slot, ",
-      "generate and download a zip file of the raw time-series, the 10-50-90 percentile envelope, ",
-      "and the percent exceedance graphs shown on the Graphs tab along with a csv file of the raw",
+      "generate and download a zip file of the raw time-series, percentile envelope, ",
+      "and percent exceedance graphs shown on the Graphs tab along with a csv file of the raw",
       "data.",
       br(),br(),
       "The selected graph options on the Graphs tab is used to generate the saved graphs. ",
