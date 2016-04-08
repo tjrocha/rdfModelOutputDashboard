@@ -59,7 +59,10 @@ homeTab <- tabItem(
     box(
       h2("Instructions"),
       "1. Select a model from the top-most drop down box or click on 'Choose File' to select and open ",
-      "an RDF file. The current file size limit is 30MB while in the beta testing phase.",
+      "an RDF file. The current file size limit is 30MB while in the beta testing phase. ",
+      "Click on the ",
+      icon("bars"),
+      " icon on the top banner on mobile to show the selection menu.",
       br(),br(),
       "2. Once a model has been selected, another drop down box will be populated with the slot names ",
       "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
@@ -278,12 +281,14 @@ reportsTab <- tabItem(
 # POPULATE DASHBOARD
 ############################################################################################
 userInterface <- dashboardPage(
+  skin = "blue",
   # DASHBOARD HEADER
   dbHeader,
   # DASHBOARD SIDEBAR
   dbSidebar,
   # DASHBOARD BODY
   dashboardBody(
+    tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "rdfTool.css")),
     tabItems(
       homeTab,
       graphTab,

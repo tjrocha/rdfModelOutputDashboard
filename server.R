@@ -455,36 +455,8 @@ serverProcessing <- function(input, output, clientData, session){
     meadZ <- getTraceMonthVal(rdfSlotToXTS(rdfFile(), 'Mead.Pool Elevation')[tRange], 12)
     powellZ <- getTraceMonthVal(rdfSlotToXTS(rdfFile(), 'Powell.Pool Elevation')[tRange], 12)
     powellQ <- rdfSlotToXTS(rdfFile(), 'Powell.Outflow')[tRange]
-    # Get Mead elevation tier percentages
-    srplus <- getArrayThresholdExceedance(meadZ,1220,'LT')
-    icsSrp <- getArrayThresholdExceedance(meadZ,1145,'LT')
-    short1 <- getArrayThresholdExceedance(meadZ,1075,'LT')
-    short2 <- getArrayThresholdExceedance(meadZ,1050,'LT')
-    short3 <- getArrayThresholdExceedance(meadZ,1025,'LT')
-    allSht <- short1
-    srplus <- srplus - icsSrp
-    icsSrp <- icsSrp - short1
-    short1 <- short1 - short2
-    short2 <- short2 - short3
-    # Get Powell elevation tier percentages
-    eqlBal <- getArrayThresholdExceedance(powellZ,3700,'LT')
-    uprBal <- getArrayThresholdExceedance(powellZ,3646,'LT')
-    midBal <- getArrayThresholdExceedance(powellZ,3575,'LT')
-    lowBal <- getArrayThresholdExceedance(powellZ,3525,'LT')
-    eqlBal <- eqlBal - uprBal
-    uprBal <- uprBal - midBal
-    midBal <- midBal - lowBal
-    # Get Powell flow volume tier percentages
-    powSum <- getTraceSum(powellQ, 'WY')
-    powGT823 <- getArrayThresholdExceedance(powSum,8230000,'GT')
-    powAT823 <- getArrayThresholdExceedance(powSum,8230000,'EQ')
-    powLT823 <- getArrayThresholdExceedance(powSum,8230000,'LT')
-    qData <- merge(powGT823,powAT823,powLT823)
-    zData <- merge(srplus,icsSrp,allSht,short1,short2,short3,eqlBal,uprBal,midBal,lowBal)
-    index(qData) <- index(zData)
-    data <- round(merge(zData,qData), digits=0)
-    data <- data.frame(coredata(data))
-    DT::datatable(t(data), filter = "none",  
+    data <- generate5YearTable(meadZ, powellZ, powellQ)
+    DT::datatable(data, filter = "none",  
                   rownames = c(
                     'Lake Mead Surplus', 'Lake Mead Normal/ICS Surplus', 'Lake Mead Any Shortage',
                     'Lake Mead Tier 1 Shortage', 'Lake Mead Tier 2 Shortage', 'Lake Mead Tier 3 Shortage', 
@@ -493,9 +465,7 @@ serverProcessing <- function(input, output, clientData, session){
                     'Lake Powell > 8.23 MAF Release','Lake Powell = 8.23 MAF Release',
                     'Lake Powell < 8.23 MAF Release'
                   ),
-                  colnames = c(
-                    t1, t1+1, t1+2, t1+3, t1+4
-                  ),
+                  colnames = c(t1, t1+1, t1+2, t1+3, t1+4),
                   caption = paste('This table shows the percentage of traces per year that meet certain ',
                                   'thresholds as defined in the 2007 Interim Guidelines. This table is ',
                                   'commonly referred to as the 5-year table in the USBR UC and LC regions.',
