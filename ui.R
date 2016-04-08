@@ -46,7 +46,7 @@ dbSidebar <- dashboardSidebar(
     menuItem("Data", tabName = "data", icon = icon("table")),
     menuItem("RDF Tree", tabName = "tree", icon = icon("tree")),
     menuItem("Reports", tabName = "reports", icon = icon("cogs")),
-    menuItem("Source Code (GitHub Link)", icon = icon("file-code-o"), href = "https://github.com/usbr/RiverWareRdfOutputExplorer")
+    menuItem("Source Code (GitHub Link)", icon = icon("code"), href = "https://github.com/usbr/RiverWareRdfOutputExplorer")
   )
 )
 ############################################################################################
@@ -71,7 +71,9 @@ homeTab <- tabItem(
       br(),br(),
       "3. Once a model and a slot has been selected, you may now view graphs and data in their respective ",
       "sections via the sidebar. Information about your selected RDF file and slot are shown by clicking ",
-      "on the icons at the top right of the window. You may change your selections at any time. ",
+      "on the ",
+      icon("envelope"),
+      " icons at the top right of the window. You may change your selections at any time. ",
       br(),br()
     ),
     box(
