@@ -74,7 +74,7 @@ serverProcessing <- function(input, output, clientData, session){
     input$rdfFileIn
     if (is.null(input$rdfFileIn)){
       selectInput(
-        "selectedModel", "1. Select a Model", 
+        "selectedModel", "1. Select an RDF", 
         c(Choose="", "24MS (24-Month Study)", 
           "MTOM (Mid-Term Operations Model)", 
           "CRSS (Colorado River Simulation System)")
@@ -82,7 +82,7 @@ serverProcessing <- function(input, output, clientData, session){
     }
     else{
       selectInput(
-        "selectedModel", "1. Select a Model", 
+        "selectedModel", "1. Select an RDF", 
         c(input$rdfFileIn$name, "24MS (24-Month Study)", 
           "MTOM (Mid-Term Operations Model)", 
           "CRSS (Colorado River Simulation System)")
@@ -117,7 +117,7 @@ serverProcessing <- function(input, output, clientData, session){
   })
   # VALIDATE SELECTED MODEL
   validateSelectedModel <- reactive({
-    validate(need(selectedModelName() != "", 'Select a Model...'))
+    validate(need(selectedModelName() != "", 'Select or upload an RDF...'))
   })
   # VALIDATE SELECTED SLOT
   validateSelectedSlot <- reactive({
@@ -233,7 +233,7 @@ serverProcessing <- function(input, output, clientData, session){
     s1 = paste(envelopeRangeSelected()[1]*100,"%",sep="")
     s2 = paste(envelopeRangeSelected()[5]*100,"%",sep="")
     data <- envelopeAggSelected()
-    dygraph(data, main = "Envelope Plot, Shaded Area is the IQR") %>%
+    dygraph(data, main = "Envelope Plot") %>%
       dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
       dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
       dySeries(c("25%", "50%", "75%"), label = "Median", strokeWidth = 2, color = "black") %>%
@@ -263,7 +263,7 @@ serverProcessing <- function(input, output, clientData, session){
     s1 = paste("X",exceedanceRangeSelected()[1]*100,".",sep="")
     s2 = paste("X",exceedanceRangeSelected()[5]*100,".",sep="")
     data <- pctExcChartData()
-    dygraph(data, main = "Percent Exceedance Plot, Shaded Area is the IQR", xlab = "Percent Exceedance (%)") %>%
+    dygraph(data, main = "Percent Exceedance Plot", xlab = "Percent Exceedance (%)") %>%
       dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
       dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
       dySeries(c("X25.", "X50.", "X75."), label = "Median", strokeWidth = 2, color = "black") %>%

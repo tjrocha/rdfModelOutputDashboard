@@ -46,7 +46,7 @@ dbSidebar <- dashboardSidebar(
     menuItem("Data", tabName = "data", icon = icon("table")),
     menuItem("RDF Tree", tabName = "tree", icon = icon("tree")),
     menuItem("Reports", tabName = "reports", icon = icon("cogs")),
-    menuItem("Source Code (GitHub Link)", icon = icon("code"), href = "https://github.com/usbr/RiverWareRdfOutputExplorer")
+    menuItem("Source Code", icon = icon("code"), href = "https://github.com/usbr/RiverWareRdfOutputExplorer")
   )
 )
 ############################################################################################
@@ -102,17 +102,17 @@ homeTab <- tabItem(
       "The dashboard uses the following R libraries below and is being developed in RStudio. ",
       br(),
       tags$a(href="http://shiny.rstudio.com/", "shiny"),
-      br(),
+      ", ",
       tags$a(href="https://rstudio.github.io/shinydashboard", "shinydashboard"),
-      br(),
+      ", ",
       tags$a(href="https://github.com/trestletech/shinyTree", "shinyTree"),
-      br(),
+      ", ",
       tags$a(href="https://rstudio.github.io/DT", "DT"),
-      br(),
+      ", ",
       tags$a(href="https://cran.r-project.org/web/packages/xts/index.html", "xts"),
-      br(),
+      ", ",
       tags$a(href="https://cran.r-project.org/web/packages/zoo/index.html", "zoo"),
-      br(),
+      ", ",
       tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
       br(),br(),
       "The source code is also available on ",
@@ -145,8 +145,8 @@ graphTab <- tabItem(
     box(
       dygraphOutput("plotRdfEnv"),
       br(),
-      "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-75 ",
-      "percentiles on the slider, these are already shown by the shaded range",
+      "Note: Click-and-drag to zoom in. Double-click to undo. The Interquartile Range or 25-50-75 ",
+      "percentile levels are already shown by the shaded range",
       radioButtons("envChartType", label = "Select aggregation: ", 
                    c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
                    selected = "monthly",inline = TRUE),
@@ -156,8 +156,8 @@ graphTab <- tabItem(
     box(
       dygraphOutput("plotRdfCDF"),
       br(),
-      "Note: Click-and-drag to zoom in. Double-click to undo. Do not select the 25-50-75 ",
-      "percentiles on the slider, these are already shown by the shaded range",
+      "Note: Click-and-drag to zoom in. Double-click to undo. The Interquartile Range or 25-50-75 ",
+      "percentile levels are already shown by the shaded range",
       sliderInput
       ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
     ) 
@@ -169,13 +169,13 @@ graphTab <- tabItem(
       br(),
       "Note: Click-and-drag to zoom in. Double-click to undo. Select a data aggregation scheme ",
       "and a threshold to compare the data against",
-      radioButtons("threshDataType", label = "Select aggregation: ", 
+      radioButtons("threshDataType", label = "Select data filter/aggregation: ", 
                    c("Raw Data" = "none", "EOCY Value" = "eocy", "CY Sum"="cysum"),
                    selected = "none",inline = TRUE),
       radioButtons("threshCompType", label = "Select threshold comparison: ", 
                    c("Greater Than" = "GT", "Less Than"="LT"),
                    selected = "LT",inline = TRUE),
-      textInput("threshValue", "Input Value(s) Example: 1075,1050,1025", "0")
+      textInput("threshValue", "Input threshold value(s): (Example: 1075,1050,1025)", "0")
     ) 
   )
 )
@@ -196,8 +196,8 @@ tableTab <- tabItem(
   br(),
   "4. You may type anything in the search textbox to further filter the results. ",
   br(),  
-  "Search Function Examples: Typing '2010' or '2010-01' will filter the data to just ",
-  "those for 2010 or January-2010 respectively. ",
+  "Search Function Examples: Typing '2010' or '12-31' will filter the data to just ",
+  "those for 2010 or December-31 for all years respectively. ",
   "Typing '1075' will filter data values outside of 1075.00 to 1075.99. ",
   br(),
   "5. Clicking on the empty boxes below each header shows the range of the data in that particular column ",
