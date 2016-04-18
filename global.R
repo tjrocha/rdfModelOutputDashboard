@@ -40,21 +40,19 @@ rdfSlotToXTS <- function(rdf, slot)
 generate5YearTable <- function(meadZ, powellZ, powellQ)
 {
   # Get Mead elevation tier percentages
-  srplus <- getArrayThresholdExceedance(meadZ,1220,'LT')
-  icsSrp <- getArrayThresholdExceedance(meadZ,1145,'LT')
-  short1 <- getArrayThresholdExceedance(meadZ,1075,'LT')
+  srplus <- getArrayThresholdExceedance(meadZ,1145,'GTE')
+  short1 <- getArrayThresholdExceedance(meadZ,1075,'LTE')
+  icsSrp <- getArrayThresholdExceedance(meadZ,0,'GTE') - (srplus + short1)
   short2 <- getArrayThresholdExceedance(meadZ,1050,'LT')
   short3 <- getArrayThresholdExceedance(meadZ,1025,'LT')
   allSht <- short1
-  srplus <- srplus - icsSrp
-  icsSrp <- icsSrp - short1
   short1 <- short1 - short2
   short2 <- short2 - short3
   # Get Powell elevation tier percentages
   eqlBal <- getArrayThresholdExceedance(powellZ,3700,'LT')
   uprBal <- getArrayThresholdExceedance(powellZ,3646,'LT')
-  midBal <- getArrayThresholdExceedance(powellZ,3575,'LT')
-  lowBal <- getArrayThresholdExceedance(powellZ,3525,'LT')
+  midBal <- getArrayThresholdExceedance(powellZ,3575,'LTE')
+  lowBal <- getArrayThresholdExceedance(powellZ,3525,'LTE')
   eqlBal <- eqlBal - uprBal
   uprBal <- uprBal - midBal
   midBal <- midBal - lowBal
@@ -233,6 +231,10 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
     boolArray <- rdfXTS > valueIn  
   else if (comparison == "LT")
     boolArray <- rdfXTS < valueIn 
+  else if (comparison == "GTE")
+    boolArray <- rdfXTS >= valueIn  
+  else if (comparison == "LTE")
+    boolArray <- rdfXTS <= valueIn 
   else if (comparison == "EQ")
     boolArray <- rdfXTS == valueIn
   else

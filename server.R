@@ -465,7 +465,7 @@ serverProcessing <- function(input, output, clientData, session){
                     'Lake Powell > 8.23 MAF Release','Lake Powell = 8.23 MAF Release',
                     'Lake Powell < 8.23 MAF Release'
                   ),
-                  colnames = c(t1, t1+1, t1+2, t1+3, t1+4),
+                  colnames = c(t1+1, t1+2, t1+3, t1+4, t1+5),
                   caption = paste('This table shows the percentage of traces per year that meet certain ',
                                   'thresholds as defined in the 2007 Interim Guidelines. This table is ',
                                   'commonly referred to as the 5-year table in the USBR UC and LC regions.',
