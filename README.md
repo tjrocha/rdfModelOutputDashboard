@@ -1,5 +1,5 @@
 # RiverWare RDF Output Explorer
-This generates a dashboard to view, analyze, and query data from RiverWare(R) *.rdf model 
+This generates a dashboard to view, analyze, and query data from [RiverWare(R)](http://www.riverware.org/) *.rdf model 
 outputs. This is primarily meant to support U.S. Bureau of Reclamation modeling and 
 analysis efforts with the 24-Month Study, Mid-Term Operations Model and Colorado River 
 Simulation System models. Although the stated purpose is to support USBR, the tool will 
