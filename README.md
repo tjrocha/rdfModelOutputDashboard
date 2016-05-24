@@ -1,10 +1,7 @@
 # RiverWare RDF Output Explorer
-This generates a dashboard to view, analyze, and query data from [RiverWare(R)](http://www.riverware.org/) *.rdf model 
-outputs. This is primarily meant to support U.S. Bureau of Reclamation modeling and 
-analysis efforts with the 24-Month Study, Mid-Term Operations Model and Colorado River 
-Simulation System models. Although the stated purpose is to support USBR, the tool will 
-be developed to be as generic as possible so as to enable other users to use is so long 
-as a RiverWare *.rdf file is provided.
+This generates a dashboard to view, analyze, and query data from the [RiverWare(R)](http://www.riverware.org/) 
+CRSS model outputs. This is primarily meant to support U.S. Bureau of Reclamation modeling and 
+analysis efforts with the Colorado River Simulation System models. 
 
 The dashboard is being developed in [RStudio](https://www.rstudio.com/) and requires the installation of the following R libraries:
 <BR>[shiny](http://shiny.rstudio.com/)
@@ -16,5 +13,5 @@ The dashboard is being developed in [RStudio](https://www.rstudio.com/) and requ
 <BR>[RWDataPlot](https://github.com/rabutler/RWDataPlot)
 
 An updated test version may be found at the link below.
-<BR>[shinyapps.io](https://jrocha.shinyapps.io/rdfModelOutputDashboard/)
+<BR>[shinyapps.io](https://jrocha.shinyapps.io/rdfModelOutputDashboardCRSS_Version/)
 

@@ -1,3 +1,31 @@
+############################################################################################
+# This application was built in RStudio by Jon Rocha at jrocha@usbr.gov
+#
+# The application allows users to query, subset, view, and plot RiverWare RDF model outputs. 
+# This is primarily meant to support U.S. Bureau of Reclamation (USBR) modeling and analysis 
+# efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation 
+# System models. Although the stated purpose is to support USBR, the tool is being developed 
+# to be as generic as possible so as to enable other users to use it so long as a RiverWare 
+# *.rdf file is provided. 
+#
+# Application is distributed with an MIT license, March 2016
+#
+#DATA INITIALIZATION
+# newMppeData <- read.rdf('newMPPE.rdf')
+# save(newMppeData,file='newMPPE.rds')
+# oldMppeData <- read.rdf('oldMPPE.rdf')
+# save(oldMppeData,file='oldMPPE.rds')
+# newSysCondData <- read.rdf('newSystemConditions.rdf')
+# save(newSysCondData,file='newSystemConditions.rds')
+# oldSysCondData <- read.rdf('oldSystemConditions.rdf')
+# save(oldSysCondData,file='oldSystemConditions.rds')
+############################################################################################
+load('oldMPPE.rds')
+load('newMPPE.rds')
+load('standardResPlotData.rds')
+load('standardSurpShortPlotData.rds')
+load('standardMeadPlotData.rds')
+load('standardPowellPlotData.rds')
 # ----------------------------------------------------------------------------
 # **************************  rdfSlotToXTS  **********************************
 # ----------------------------------------------------------------------------
@@ -35,38 +63,6 @@ rdfSlotToXTS <- function(rdf, slot)
   }
   names(rdfXTS) <- runNames
   rdfXTS
-}
-
-generate5YearTable <- function(meadZ, powellZ, powellQ)
-{
-  # Get Mead elevation tier percentages
-  srplus <- getArrayThresholdExceedance(meadZ,1145,'GTE')
-  short1 <- getArrayThresholdExceedance(meadZ,1075,'LTE')
-  icsSrp <- getArrayThresholdExceedance(meadZ,0,'GTE') - (srplus + short1)
-  short2 <- getArrayThresholdExceedance(meadZ,1050,'LT')
-  short3 <- getArrayThresholdExceedance(meadZ,1025,'LT')
-  allSht <- short1
-  short1 <- short1 - short2
-  short2 <- short2 - short3
-  # Get Powell elevation tier percentages
-  eqlBal <- getArrayThresholdExceedance(powellZ,3700,'LT')
-  uprBal <- getArrayThresholdExceedance(powellZ,3646,'LT')
-  midBal <- getArrayThresholdExceedance(powellZ,3575,'LTE')
-  lowBal <- getArrayThresholdExceedance(powellZ,3525,'LTE')
-  eqlBal <- eqlBal - uprBal
-  uprBal <- uprBal - midBal
-  midBal <- midBal - lowBal
-  # Get Powell flow volume tier percentages
-  powSum <- getTraceSum(powellQ, 'WY')
-  powGT823 <- getArrayThresholdExceedance(powSum,8230000,'GT')
-  powAT823 <- getArrayThresholdExceedance(powSum,8230000,'EQ')
-  powLT823 <- getArrayThresholdExceedance(powSum,8230000,'LT')
-  qData <- merge(powGT823,powAT823,powLT823)
-  zData <- merge(srplus,icsSrp,allSht,short1,short2,short3,eqlBal,uprBal,midBal,lowBal)
-  index(qData) <- index(zData)
-  data <- round(merge(zData,qData), digits=0)
-  data <- data.frame(coredata(data))
-  return(t(data))
 }
 
 ########################################################################################
@@ -247,3 +243,34 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
   return(trueCount/totalCount * 100)
 }
 
+
+#####################################################################################################################################
+# HARDCODED CRSS DATA FUNCTIONS
+#####################################################################################################################################
+getSurpShortXtsData <- function(run) {
+  if (run == 'new')
+    dTab <- standardSurpShortPlotData[[1]]
+  else
+    dTab <- merge(standardSurpShortPlotData[[1]],standardSurpShortPlotData[[2]])
+  dTab
+}
+getResXtsData <- function(resName, run){
+  if (resName == 'mead')
+    if (run == 'new')
+      rdfXts <- standardMeadPlotData[[1]]
+    else
+      rdfXts <- merge(standardMeadPlotData[[1]],standardMeadPlotData[[2]])
+  else
+    if (run == 'new')
+      rdfXts <- standardPowellPlotData[[1]]
+    else
+      rdfXts <- merge(standardPowellPlotData[[1]],standardPowellPlotData[[2]])
+  rdfXts
+}
+getElevXtsData <- function(run) {
+  if (run == 'new')
+    dTab <- standardResPlotData[[1]]
+  else
+    dTab <- merge(standardResPlotData[[1]],standardResPlotData[[2]])
+  dTab
+}

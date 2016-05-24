@@ -17,19 +17,17 @@
 rm(list=ls())
 library(shiny)
 library(shinydashboard)
-library(shinyTree)
 library(dygraphs)
 library(DT)
 library(xts)
 library(zoo)
 library(RWDataPlot)
+source('global.R')
 ############################################################################################
 # DEFINE DASHBOARD HEADER
 ############################################################################################
 dbHeader <- dashboardHeader(
-  title="", 
-  dropdownMenuOutput("rdfInfoMenu"),
-  dropdownMenuOutput("slotInfoMenu")
+  title=""
 )
 dbHeader$children[[2]]$children <-  tags$a(href='http://www.usbr.gov/',tags$img(src='logo.png',height='38',width='200'))
 ############################################################################################
@@ -37,16 +35,11 @@ dbHeader$children[[2]]$children <-  tags$a(href='http://www.usbr.gov/',tags$img(
 ############################################################################################
 dbSidebar <- dashboardSidebar(
   # DEFINE SIDEBAR ITEMS
-  uiOutput("selectModelName"),
-  uiOutput("resettableFileInput"),
-  uiOutput("selectSlotName"),
   sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home")),
-    menuItem("Graphs", tabName = "graphs", icon = icon("area-chart")),
-    menuItem("Data", tabName = "data", icon = icon("table")),
-    menuItem("RDF Tree", tabName = "tree", icon = icon("tree")),
-    menuItem("Reports", tabName = "reports", icon = icon("cogs")),
-    menuItem("Source Code", icon = icon("code"), href = "https://github.com/usbr/RiverWareRdfOutputExplorer")
+    menuItem("Report", tabName = "report", icon = icon("table")),
+    menuItem("Explore", tabName = "explore", icon = icon("area-chart")),
+    menuItem("Source Code", icon = icon("code"), href = "https://github.com/tjrocha/RiverWareRdfOutputExplorer")
   )
 )
 ############################################################################################
@@ -54,7 +47,7 @@ dbSidebar <- dashboardSidebar(
 ############################################################################################
 homeTab <- tabItem(
   tabName = "home",
-  h1("RiverWare RDF Output Explorer"),
+  h1("CRSS Output Explorer"),
   fluidRow(
     tags$em(
     "BETA VERSION STATEMENT: This data exploration tool is intended for use by U.S. Bureau of Reclamation ",
@@ -67,22 +60,13 @@ homeTab <- tabItem(
     br(),br(),
     box(
       h2("Instructions"),
-      "1. Select a model from the top-most drop down box or click on 'Choose File' to select and open ",
-      "an RDF file. The current file size limit is 30MB while in the beta testing phase. ",
-      "Click on the ",
-      icon("bars"),
-      " icon on the top banner on mobile to show the selection menu.",
-      br(),br(),
-      "2. Once a model has been selected, another drop down box will be populated with the slot names ",
-      "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
-      "to select or you may type in partial names to filter the available slots in the list. ",
-      "The drop-down box may take a few seconds to generate.",
-      br(),br(),
-      "3. Once a model and a slot has been selected, you may now view graphs and data in their respective ",
-      "sections via the sidebar. Information about your selected RDF file and slot are shown by clicking ",
-      "on the ",
-      icon("envelope"),
-      " icons at the top right of the window. You may change your selections at any time. ",
+      "1. The typical graphs that are generated for CRSS runs are shown in the Report ",
+      icon("table"),
+      " tab.",
+      br(),
+      "2. You may click on the Explore ",
+      icon("area-chart"),
+      " tab to select specific CRSS runs and outputs to graph, tabulate, and analyze.", 
       br(),br()
     ),
     box(
@@ -101,12 +85,10 @@ homeTab <- tabItem(
       "projections and are subject to change as actual hydrology, operations, and forecasts diverge ",
       "from those used to produce specific model projections. ",
       br(),br(),
-      "This interface allows users to query, subset, view, and plot RiverWare RDF model outputs. ",
+      "This dashboard allows users to query, subset, view, and plot RiverWare model outputs. ",
       "This tool is primarily meant to support U.S. Bureau of Reclamation modeling and analysis ",
-      "efforts with the 24-Month Study, Mid-Term Operations Model, and Colorado River Simulation ",
-      "System models. Although the stated purpose is to support USBR, the tool is being developed ",
-      "to be as generic as possible so as to enable other users to use it so long as a RiverWare ",
-      "*.rdf file is provided.",
+      "efforts with the Colorado River Simulation ",
+      "System models. ",
       br(),br(),
       "The dashboard uses the following R libraries below and is being developed in RStudio. ",
       br(),
@@ -125,7 +107,7 @@ homeTab <- tabItem(
       tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
       br(),br(),
       "The source code is available on ",
-      tags$a(href="https://github.com/usbr/RiverWareRdfOutputExplorer", "GitHub. "),
+      tags$a(href="https://github.com/tjrocha/RiverWareRdfOutputExplorer", "GitHub. "),
       "Contact the developer, Jon Rocha, via e-mail at jrocha@usbr.gov for questions or feedback."
     )
   )
@@ -133,12 +115,33 @@ homeTab <- tabItem(
 ############################################################################################
 # DEFINE DASHBOARD BODY GRAPHS TAB
 ############################################################################################
-graphTab <- tabItem(
-  tabName = "graphs",
-  h2("Graphs"),
+exploreTab <- tabItem(
+  tabName = "explore",
+  h2("Instructions"),
+  "1. Select a model run from the drop down box on the left-hand-side.",
+  br(),
+  "2. Once a model run has been selected, another drop down box will be populated with the slot names ",
+  "present in the selected model run. You may click on the drop-down box to specify a slot ",
+  "to select or you may type in partial names to filter the available slots in the list. ",
+  "The drop-down box may take a few seconds to generate.",
+  br(),
+  "3. Once a run and a slot has been selected, you may now view graphs and data in the page below. ",
+  "Note that it takes ~4 seconds to populate for the typical CRSS run with 107 traces and ",
+  "~75 seconds for the occasional run with 3,210 traces",
+  br(),br(),
+  fluidRow(
+    box(
+      uiOutput("selectModelName")
+      #uiOutput("resettableFileInput")
+    ),
+    box(
+      uiOutput("selectSlotName") 
+    )
+  ),
+  h2("Graphs & Data"),
   "Notes:",
   br(),
-  "1. Graphs shown below are based on the selected model and slot on the sidebar menu. ",
+  "1. Graphs shown below are based on the selected Run and Slot on the top menu. ",
   br(),
   "2. Some plots have interactive elements while some do not. ",
   br(),br(),
@@ -155,27 +158,22 @@ graphTab <- tabItem(
     box(
       dygraphOutput("plotRdfEnv"),
       br(),
+      textOutput("plotRdfEnvLegend"),
+      br(),
       "Note: Click-and-drag to zoom in. Double-click to undo. The Interquartile Range or 25-50-75 ",
       "percentile levels are already shown by the shaded range",
       radioButtons("envChartType", label = "Select aggregation: ", 
                    c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
                    selected = "monthly",inline = TRUE),
-      sliderInput("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
-    ), 
-    # CDF GRAPH BOX
-    box(
-      dygraphOutput("plotRdfCDF"),
+      sliderInput("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90)),
       br(),
-      "Note: Click-and-drag to zoom in. Double-click to undo. The Interquartile Range or 25-50-75 ",
-      "percentile levels are already shown by the shaded range",
-      sliderInput
-      ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
-    ) 
-  ),
-  fluidRow(
+      downloadButton('downloadEnvelopeAggSelectedData', 'Download Data as a CSV file')
+    ), 
     # THRESHOLD GRAPH BOX
     box(
       dygraphOutput("plotRdfThreshCheck"),
+      br(),
+      textOutput("plotRdfThreshCheckLegend"),
       br(),
       "Note: Click-and-drag to zoom in. Double-click to undo. Select a data aggregation scheme ",
       "and a threshold to compare the data against",
@@ -185,19 +183,15 @@ graphTab <- tabItem(
       radioButtons("threshCompType", label = "Select threshold comparison: ", 
                    c("Greater Than" = "GT", "Less Than"="LT"),
                    selected = "LT",inline = TRUE),
-      textInput("threshValue", "Input threshold value(s): (Example: 1075,1050,1025)", "0")
+      textInput("threshValue", "Input threshold value(s): (Example: 1075,1050,1025)", "0"),
+      br(),
+      downloadButton('downloadThresoldChartDataData', 'Download Data as a CSV file')
     ) 
-  )
-)
-############################################################################################
-# DEFINE DASHBOARD BODY TABLE TAB
-############################################################################################
-tableTab <- tabItem(
-  tabName = "data",
+  ),
   h2("Data Table"),
   "Notes:",
   br(),
-  "1. Data shown below is based on the selected model and slot on the sidebar menu. ",
+  "1. Graphs shown below are based on the selected Run and Slot on the top menu. ",
   br(),
   "2. Clicking on the Download Data button will save the entire contents of the table as a ",
   "comma-separated-variables (CSV) file on your local machine. ",
@@ -223,72 +217,58 @@ tableTab <- tabItem(
   )
 )
 ############################################################################################
-# DEFINE DASHBOARD BODY RDF TREE TAB
+# DEFINE DASHBOARD BODY TABLE TAB
 ############################################################################################
-treeTab <- tabItem(
-  tabName = "tree",
-  h2("RDF Tree"),
-  fluidRow(
-    box(
-      "Notes:",
-      br(),br(),
-      "1. The tree view shown to the right is based on the selected model on the sidebar menu. ",
-      br(),br(),
-      "2. Clicking on the chevron buttons next to a folder will expand/collapse the content view ",
-      "for that particular folder.",
-      br(),br(),
-      "3. Clicking on DataObjects > Objects displays a quick view of the available slots for a ",
-      "given RDF without having to scroll through the slot list on the sidebar menu."
-    ),
-    box(
-      shinyTree("rdfTree")  
-    )
-  )
+reportTab <- tabItem(
+   tabName = "report",
+   h2("Typical CRSS Results"),
+   "Notes:",
+   br(),
+   "1. The slots shown here are based on the typical graphs generated for CRSS outputs. ",
+   br(),
+   "2. Zoom in by clicking-and-dragging a range within each plot. Double-click to unzoom.",
+   br(),
+   "3. You may compare results from the most recent CRSS run against the previous run by ",
+   "toggling the check box under each plot.",
+   br(),
+   "4. Click on the Download Data button to donwload the underlying data shown in each plot.",
+   br(),br(),
+   fluidRow(
+     box(
+       dygraphOutput("meadStandardGraphXts"),
+       br(),
+       textOutput("meadStandardGraphXtsLegend"),
+       checkboxInput("meadStandardCompare", "Compare with previous run", FALSE),
+       downloadButton('downloadMeadStandardData', 'Download Data as a CSV file')
+       # downloadButton('downloadMeadChart', 'Download Chart as HTML file')
+     ),
+     box(
+       dygraphOutput("powellStandardGraphXts"),
+       br(),
+       textOutput("powellStandardGraphXtsLegend"),
+       checkboxInput("powellStandardCompare", "Compare with previous run", FALSE),
+       downloadButton('downloadPowellStandardData', 'Download Data as a CSV file')
+     )
+   ),
+   fluidRow(
+     box(
+       dygraphOutput("surpshortStandardGraphXts"),
+       br(),
+       textOutput("surpshortStandardGraphXtsLegend"),
+       checkboxInput("surpShortStandardCompare", "Compare with previous run", FALSE),
+       downloadButton('downloadSrShortStandardData', 'Download Data as a CSV file')
+     ),
+     box(
+       dygraphOutput("elevsStandardGraphXts"),
+       br(),
+       textOutput("elevsStandardGraphXtsLegend"),
+       checkboxInput("elevsStandardCompare", "Compare with previous run", FALSE),
+       downloadButton('downloadElevStandardData', 'Download Data as a CSV file')
+       
+     )
+   )
 )
-############################################################################################
-# DEFINE DASHBOARD BODY REPORTS TAB
-############################################################################################
-reportsTab <- tabItem(
-  tabName = "reports",
-  h2("Reports"),
-  "Notes:",
-  br(),
-  "1. This tab allows the automatic generation and download of some preconfigured graphs and data ",
-  "tables given the selected RDF and slot on the sidebar menu.",
-  br(),
-  "2. Automatic generation of the reports for all the slots in a given RDF will be programmed at a ",
-  "later time. ",
-  br(),
-  "3. This tab will also have options to generate a preconfigured set of graphs and analysis ",
-  "typicaly produced for the USBR UC & LC operations and planning models. The idea is to ",
-  "make the report generator smart enough to know from the RDF metadata whether to allow ",
-  "the generation of 24MS, MTOM, or CRSS reports.",
-  br(),br(),
-  fluidRow(
-    box(
-      "Using the selected RDF and slot, ",
-      "generate and download a zip file of the raw time-series, percentile envelope, ",
-      "and percent exceedance graphs shown on the Graphs tab along with a csv file of the raw",
-      "data.",
-      br(),br(),
-      "The selected graph options on the Graphs tab is used to generate the saved graphs. ",
-      br(),br(),
-      uiOutput("reportDownloadButton")
-    )
-  ),
-#  fluidRow(
-#    box(
-#      "NOTE: This section generates the USBR UC & LC 5-year probability table based on whether ",
-#      "the loaded RDF has the Mead.Pool Elevation, Powell.Pool Elevation and Powell.Outflow ",
-#      "slots. THIS IS CURRENTLY BEING PROGRAMMED...",
-      br(),
-      div(
-        style = 'overflow-x: scroll',
-        DT::dataTableOutput("tableProbabilityData")
-      )
-#    )
-#  )
-)
+
 ############################################################################################
 # POPULATE DASHBOARD
 ############################################################################################
@@ -303,10 +283,8 @@ userInterface <- dashboardPage(
     tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "rdfTool.css")),
     tabItems(
       homeTab,
-      graphTab,
-      tableTab,
-      treeTab,
-      reportsTab
+      reportTab,
+      exploreTab
     )
   )
 )
