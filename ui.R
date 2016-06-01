@@ -49,15 +49,21 @@ homeTab <- tabItem(
   tabName = "home",
   h1("CRSS Output Explorer"),
   fluidRow(
+    tags$div(
+      HTML(paste(tags$span(style="color:red",  
+    
     tags$em(
-    "BETA VERSION STATEMENT: This data exploration tool is intended for use by U.S. Bureau of Reclamation ",
-    "(Reclamation) modelers, Reclamation's stakeholders, academia, and the public. The data presented here ",
-    "are outputs from a water resources model. You may request a subset of the data by contacting us directly ",
-    "via email. Please send questions, comments, suggestions for improvements, and error reports via email to ",
-    "Jon Rocha (jrocha@usbr.gov). The current web location for this tool is temporary and it will be hosted on ",
-    "a Reclamation server as soon as a suitable one can be located."
-    ),
+    "Disclaimer: This software is in the public domain because it contains materials that originally came from the ",
+    "U.S. Bureau of Reclamation, an agency of the United States Department of Interior. ",
     br(),br(),
+    "Although this software program has been used by the U.S. Bureau of Reclamation (Reclamation), no warranty, expressed or ",
+    "implied, is made by Reclamation or the U.S. Government as to the accuracy and functioning of the program and related ",
+    "program material nor shall the fact of distribution constitute any such warranty, and no responsibility is assumed by ",
+    "Reclamation in connection therewith.",
+    br(),br(),
+    "This software is provided 'AS IS'.",
+    sep = ""))))),
+    br(),
     box(
       h2("Instructions"),
       "1. The typical graphs that are generated for CRSS runs are shown in the Report ",
@@ -67,7 +73,13 @@ homeTab <- tabItem(
       "2. You may click on the Explore ",
       icon("area-chart"),
       " tab to select specific CRSS runs and outputs to graph, tabulate, and analyze.", 
-      br(),br()
+      br(),br(),
+      "BETA VERSION STATEMENT: This data exploration tool is intended for use by U.S. Bureau of Reclamation ",
+      "(Reclamation) modelers, Reclamation's stakeholders, academia, and the public. The data presented here ",
+      "are outputs from a water resources model. You may request a subset of the data by contacting us directly ",
+      "via email. Please send questions, comments, suggestions for improvements, and error reports via email to ",
+      "Jon Rocha (jrocha@usbr.gov). The current web location for this tool is temporary and it will be hosted on ",
+      "a Reclamation server as soon as a suitable one can be located."
     ),
     box(
       h2("Information"),
@@ -108,7 +120,8 @@ homeTab <- tabItem(
       br(),br(),
       "The source code is available on ",
       tags$a(href="https://github.com/tjrocha/RiverWareRdfOutputExplorer", "GitHub. "),
-      "Contact the developer, Jon Rocha, via e-mail at jrocha@usbr.gov for questions or feedback."
+      "Contact the developer, Jon Rocha, via e-mail at jrocha@usbr.gov for questions or feedback.",
+      br()
     )
   )
 )
