@@ -122,7 +122,7 @@ homeTab <- tabItem(
       ", ",
       tags$a(href="https://cran.r-project.org/web/packages/zoo/index.html", "zoo"),
       ", ",
-      tags$a(href="https://github.com/rabutler/RWDataPlot", "RWDataPlot"),
+      tags$a(href="https://github.com/jrocha/RWDataPlot", "RWDataPlot"),
       br(),br(),
       "The source code is available on ",
       tags$a(href="https://github.com/usbr/RiverWareRdfOutputExplorer", "GitHub. "),
