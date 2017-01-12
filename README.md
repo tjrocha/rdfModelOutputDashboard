@@ -13,7 +13,7 @@ The dashboard is being developed in [RStudio](https://www.rstudio.com/) and requ
 <BR>[DT](https://rstudio.github.io/DT/)
 <BR>[xts](https://cran.r-project.org/web/packages/xts/index.html)
 <BR>[zoo](https://cran.r-project.org/web/packages/zoo/index.html)
-<BR>[RWDataPlot](https://github.com/rabutler/RWDataPlot)
+<BR>[RWDataPlot](https://github.com/tjrocha/RWDataPlot)
 
 An updated test version may be found at the link below.
 <BR>[shinyapps.io](https://jrocha.shinyapps.io/rdfModelOutputDashboard/)
