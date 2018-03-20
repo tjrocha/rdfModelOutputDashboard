@@ -16,5 +16,5 @@ The dashboard is being developed in [RStudio](https://www.rstudio.com/) and requ
 <BR>[RWDataPlot](https://github.com/tjrocha/RWDataPlot)
 
 An updated test version may be found at the link below.
-<BR>[shinyapps.io](https://jrocha.shinyapps.io/rdfModelOutputDashboard/)
+<BR>[shinyapps.io](https://tjrocha.shinyapps.io/rdfModelOutputDashboard/)
 
